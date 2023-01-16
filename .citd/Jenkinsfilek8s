@@ -1,0 +1,121 @@
+// Jenkinsfilek8s v1.2.0
+
+pipeline {
+    agent none
+
+    environment {
+        GITHUB_OWNER = 'microchip-pic-avr-solutions'
+        GITHUB_URL ='https://github.com/microchip-pic-avr-solutions/pic18f57q43-cnano-bootloader-melody.git'
+        BITBUCKET_URL = 'https://bitbucket.microchip.com/scm/MFML/pic18f57q43-cnano-bootloader-melody.git'
+        DEPLOY_TOOL_URL = 'https://bitbucket.microchip.com/scm/citd/tool-github-deploy.git'
+        DEPLOY_SCRIPT_DIR = 'tool-github-deploy'
+        DEPLOY_SCRIPT_FILE = 'deploy-selective-source.sh'
+        DEPLOY_ARTIFACTS_SCRIPT_FILE = 'deploy-artifacts.sh'
+        DEPLOY_INCLUDES = '../PIC18F57Q43_BL.X ../PIC18F57Q43_App.X ../readme.md ../disclaimer.tdd ../Images ../.main-meta'
+        DEPLOY_EXCLUDES = 'build dist .generated_files'
+        DEPLOY_HEX_FILE = 'PIC18F57Q43_BL.X/dist/XC8/production/PIC18F57Q43_BL.X.production.hex'
+        ARTIFACTORY_SERVER = 'https://artifacts.microchip.com:7999/artifactory'
+        ARTIFACTORY_MODULE = 'pic18f57q43-cnano-bootloader-melody'
+        BUILD_FOLDER = 'build'
+        TEST_REPORT_PATH = 'build/artifacts/test/*.xml'
+        // When using branch name as part of IVY revision there should not be any forward slashes or dots in the branch name as it will confuse the ivy version parser
+        MODIFIED_BRANCH_NAME = "${BRANCH_NAME}".replace(".", "_").replace("/", "_")
+        IVY_REVISION = "${MODIFIED_BRANCH_NAME}.${BUILD_NUMBER}"
+        TEAMS_WEBHOOK = 'https://microchiptechnology.webhook.office.com/webhookb2/80151a3e-5353-42ab-891b-a7d893a2905b@3f4057f3-b418-4d4e-ba84-d55b4e897d88/IncomingWebhook/693f2426000d42f18354ef88c5fd9393/15b788d6-b5bb-4386-830b-9ef7f573e5ed'
+        SEMVER_REGEX = '^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)+$'
+    }
+    options {
+        timestamps()
+        timeout(time: 30, unit: 'MINUTES')
+    }
+
+    stages {
+        stage('Build and deploy') {
+            agent {
+                kubernetes {
+                    defaultContainer 'pic18f57q43-cnano-bootloader-melody-xc8-mplabx'
+                    yamlFile 'cloudprovider.yml'
+                }
+            }
+            stages {
+                stage('Checkout') {
+                    steps {
+                        checkout scm
+                    }
+                }
+                stage('metadata') {
+                    steps {
+			        	script {
+				        	execute("pip install jsonschema")
+					        execute("git clone https://bitbucket.microchip.com/scm/citd/metadata-schema.git")
+			    		    execute("git clone https://bitbucket.microchip.com/scm/citd/tool-metadata-validator.git")
+				    	    execute("cd tool-metadata-validator && python metadata-validator.py -data '../.main-meta/main.json' -schema '../metadata-schema/main-schema.json'")
+				        }
+                    }
+                }
+                stage('Pre-build') {
+			        steps {
+				        script {
+                            MPLABX_PATH= sh (script: 'update-alternatives --list MPLABX_PATH',returnStdout: true).trim()
+                            COMPILER_PATH= sh (script: 'update-alternatives --list XC8_PATH',returnStdout: true).trim()
+                            def pDir = "${MPLABX_PATH}/packs"
+                            def ver = COMPILER_PATH.split('/')[4].substring(1)
+
+                            execute("git clone https://bitbucket.microchip.com/scm/citd/tool-mplabx-c-project-generator.git")
+                            execute("cd tool-mplabx-c-project-generator && node configGenerator.js sp=../ v8=${ver} packs=${pDir}")
+                        }
+                    }
+                }
+                stage('Build') {
+                    steps {
+                        script {
+                            execute("git clone https://bitbucket.microchip.com/scm/citd/tool-mplabx-c-build.git")
+                            execute("cd tool-mplabx-c-build && node buildLauncher.js sp=../ rp=./output genMK=true")
+                            // Store build artifacts for later publishing to Artifactory
+                            zipFirmwareArtifact("PIC18F57Q43_BL.X/dist/XC8/production", "XC8")
+                            stash includes: "${BUILD_FOLDER}/${env.ARTIFACTORY_MODULE}-XC8.zip", name: 'artifacts-xc8'
+                        }
+                        archiveArtifacts artifacts: "tool-mplabx-c-build/output/**", allowEmptyArchive: true, fingerprint: true
+                    }
+                }
+			}
+		}
+    }
+    post {
+        failure {
+            office365ConnectorSend message:"Pipeline Failure", status:"FAILURE", webhookUrl: env.TEAMS_WEBHOOK, color: "FF0000"
+        }
+        fixed {
+            office365ConnectorSend message:"Pipeline Fixed", status:"FIXED", webhookUrl: env.TEAMS_WEBHOOK, color: "00FF00"
+        }
+        aborted {
+            office365ConnectorSend message:"Pipeline Aborted", status:"ABORTED", webhookUrl: env.TEAMS_WEBHOOK, color: "3300FF"
+        }
+        unstable {
+            office365ConnectorSend message:"Pipeline Unstable. Failing tests?", status:"UNSTABLE", webhookUrl: env.TEAMS_WEBHOOK, color: "FFAA00"
+        }
+    }
+}
+
+def execute(String cmd) {
+    if(isUnix()) {
+        sh cmd
+    } else {
+        bat cmd
+    }
+}
+
+def initializeGitForDeployment() {
+    execute("git config --global user.email 'microchip@microchip.com'")
+    execute("git config --global user.name 'Microchip Technology'")
+}
+
+def zipFirmwareArtifact(String sourcePath, String artifactsuffix) {
+    def files = findFiles glob: "${sourcePath}/**"
+    echo "Zipping files in folder ${sourcePath}"
+    if( files.length > 0 ) {
+        def ZipFile = "${BUILD_FOLDER}/${env.ARTIFACTORY_MODULE}-${artifactsuffix}.zip"
+        echo "Zipping to ${ZipFile}"
+        zip archive: true, glob: "**", zipFile: "${ZipFile}", dir: "${sourcePath}"
+    }
+}

@@ -34,7 +34,7 @@ pipeline {
             agent {
                 kubernetes {
                     defaultContainer 'pic18f57q43-cnano-bootloader-melody-xc8-mplabx'
-                    yamlFile 'cloudprovider.yml'
+                    yamlFile '.citd/cloudprovider.yml'
                 }
             }
             stages {

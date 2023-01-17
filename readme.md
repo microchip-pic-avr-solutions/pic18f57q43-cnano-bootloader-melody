@@ -186,4 +186,4 @@ The application HEX file is loaded in the controller using Microchip's Unified B
    ![UBHA Bootloader Offset](Images/UBHA_Bootloader_Offset.PNG)
    
    7. Click on the Program Device button. Once the device is programmed, the bootloader will disconnect from the COM port. Open Tools->Console to view output/status.      
-  ![Successful Programming](Images/UBHA%20completed.png)
+  ![Successful Programming](Images/UBHA%20completed.png)   

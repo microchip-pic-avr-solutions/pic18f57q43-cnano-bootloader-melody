@@ -69,6 +69,8 @@ pipeline {
                 stage('Build') {
                     steps {
                         script {
+                            // Install xml2js dependency needed by the tool-mplabx-c-build scripts
+                            execute("npm i xml2js")
                             execute("git clone https://bitbucket.microchip.com/scm/citd/tool-mplabx-c-build.git")
                             execute("cd tool-mplabx-c-build && node buildLauncher.js sp=../ rp=./output genMK=true")
                             // Store build artifacts for later publishing to Artifactory

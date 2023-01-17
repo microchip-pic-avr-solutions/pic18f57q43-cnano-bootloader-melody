@@ -10,7 +10,7 @@
 */
 
 /*
-© [2022] Microchip Technology Inc. and its subsidiaries.
+© [2023] Microchip Technology Inc. and its subsidiaries.
 
     Subject to your compliance with these terms, you may use Microchip 
     software and any derivatives exclusively with Microchip products. 
@@ -89,12 +89,6 @@
  * This is a macro for bootloader frame data size.
  */
 #define  BL_FRAME_DATA_SIZE           (PROGMEM_PAGE_SIZE)
-/**
- * @ingroup generic_bootloader_8bit
- * @def APPLICATION_VALID
- * This is a macro for value to indicate application valid verification.
- */
-#define APPLICATION_VALID             (0x55U)
 
 /**
  * @ingroup generic_bootloader_8bit
@@ -248,12 +242,6 @@
  * RESET       0x09    Reset Device and run application.
  */
 #define RESET_DEVICE   (0x09U)
-/**
- * @ingroup generic_bootloader_8bit
- * @def WRITE_STATUS
- * This macro holds the command write the firmware upgrade status.
- */
-#define WRITE_STATUS   (0x0BU)
 
 /**
  * @ingroup generic_bootloader_8bit

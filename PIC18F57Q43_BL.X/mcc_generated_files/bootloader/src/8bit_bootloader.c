@@ -10,7 +10,7 @@
  */
 
 /*
-© [2022] Microchip Technology Inc. and its subsidiaries.
+© [2023] Microchip Technology Inc. and its subsidiaries.
 
     Subject to your compliance with these terms, you may use Microchip 
     software and any derivatives exclusively with Microchip products. 
@@ -74,7 +74,6 @@ static uint8_t BL_CalcChecksum(void);
 static uint16_t BL_ReadFlash(void);
 static uint16_t BL_ReadConfig(void);
 static uint8_t BL_WriteConfig(void);
-static uint8_t BL_WriteAppStatus(void);
 static uint16_t BL_ReadEEData(void);
 static uint8_t BL_WriteEEData(void);
 
@@ -189,9 +188,6 @@ static uint16_t BL_ProcessBootBuffer(void)
         resetPending = true;
         len = 10U;
         break;
-    case WRITE_STATUS:
-        len = BL_WriteAppStatus();
-        break;
     default:
         frame.data[0] = ERROR_INVALID_COMMAND;
         len = 10U;
@@ -228,10 +224,6 @@ static void BL_RunBootloader(void)
                 {
                     messageLength += frame.data_length;
                 }
-                else if (frame.command == WRITE_STATUS)
-                {
-                    messageLength += 1U;
-                }
                 else
                 {
                     //do nothing
@@ -257,31 +249,6 @@ static void BL_CheckDeviceReset(void)
 {
     if (resetPending == true)
     {
-        // *************************************
-        // Write the status of the bootloader at the device reset
-        // which should occur after every reprogramming action
-        // *************************************
-        if (FLASH_Read((flash_address_t) STATUS_ADDRESS) == (flash_data_t) 0xFFU)
-        {
-            uint16_t unlockKey;
-            nvm_status_t updateStatus;
-
-            unlockKey = (((uint16_t) frame.EE_key_2) << 8U)
-                    | (uint16_t) frame.EE_key_1;
-
-            NVM_StatusClear();
-
-            NVM_UnlockKeySet(unlockKey);
-
-            updateStatus = FLASH_Write((flash_address_t) STATUS_ADDRESS, (uint16_t) APPLICATION_VALID);
-
-            NVM_UnlockKeyClear();
-
-            if (updateStatus == NVM_ERROR)
-            {
-                NVM_StatusClear();
-            }
-        }
         BL_INDICATOR_OFF();
         RESET();
     }
@@ -738,66 +705,4 @@ static uint8_t BL_CalcChecksum(void)
     return (11U);
 }
 
-/**
- * @ingroup 8bit_bootloader
- * @brief   Sets the status byte value of the bootloader in FLASH.
- * @param   None.
- * @return  The total length of the packet being passed back to the host.
- * @example
- * ************************************************************************************************
- * Write Application Status to Predefined Flash Address
- *        Cmd--- Length----- Keys------- Address------------------------- Data ------------------
- * In:   [|0x0B | 0x01 | 0x00 | 0x55 | 0xAA | ADDR_L | ADDR_H | ADDR_U | ADDR_E | 0x55|]
- * OUT:  [|0x0B | 0x01 | 0x00 | 0x00 | 0x00 | ADDR_L | ADDR_H | ADDR_U | ADDR_E | CMD_STATUS|]
- * ************************************************************************************************
- */
-static uint8_t BL_WriteAppStatus(void)
-{
-    nvm_status_t errorStatus = NVM_OK;
-    flash_data_t userStatusByte = (flash_data_t) frame.data[0];
-    flash_data_t writeBuff[PROGMEM_PAGE_SIZE];
-    uint16_t unlockKey = (((uint16_t) frame.EE_key_2) << 8U)
-            | (uint16_t) frame.EE_key_1;
-
-
-    flash_address_t userAddress = (((flash_address_t) frame.address_U) << 16U)
-            | (((flash_address_t) frame.address_H) << 8U)
-            | (flash_address_t) frame.address_L;
-
-    // Validate the target address
-    if ((STATUS_ADDRESS ^ userAddress) != 0U)
-    {
-        frame.data[0] = ERROR_ADDRESS_OUT_OF_RANGE;
-        return (BL_HEADER + 1U);
-    }
-
-    if (unlockKey != UNLOCK_KEY)
-    {
-        frame.data[0] = COMMAND_PROCESSING_ERROR;
-        return (BL_HEADER + 1U);
-    }
-    flash_address_t startOfPageRow = FLASH_PageAddressGet((flash_address_t) STATUS_ADDRESS);
-    flash_address_t statusOffset = FLASH_PageOffsetGet((flash_address_t) STATUS_ADDRESS);
-
-    // loop over row to preserve the page data
-    for (uint16_t i = 0U; i < PROGMEM_PAGE_SIZE; i++)
-    {
-        writeBuff[i] = FLASH_Read(startOfPageRow + i);
-    }
-
-    writeBuff[statusOffset] = userStatusByte;
-    
-    NVM_UnlockKeySet(unlockKey);
-    errorStatus = FLASH_PageErase(startOfPageRow);
-    NVM_UnlockKeyClear();
-    if (errorStatus == NVM_OK)
-    {
-        NVM_UnlockKeySet(unlockKey);
-        errorStatus = FLASH_RowWrite(startOfPageRow, writeBuff);
-        NVM_UnlockKeyClear();
-    }
-
-    frame.data[0] = (errorStatus == NVM_OK) ? COMMAND_SUCCESS : COMMAND_PROCESSING_ERROR;
-    return (BL_HEADER + 1U); // 9 byte header + Status
-}
 

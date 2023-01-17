@@ -10,7 +10,7 @@
 */
 
 /*
-© [2022] Microchip Technology Inc. and its subsidiaries.
+© [2023] Microchip Technology Inc. and its subsidiaries.
 
     Subject to your compliance with these terms, you may use Microchip 
     software and any derivatives exclusively with Microchip products. 
@@ -54,13 +54,30 @@
  * This is a macro for high byte of program page size
  */
 #define PROGMEM_PAGE_SIZE_HIGH_BYTE ((uint8_t)((PROGMEM_PAGE_SIZE >> 8U) & 0xFFU))
+
 /**
  * @ingroup generic_bootloader_8bit
- * @def STATUS_ADDRESS
- * This is a macro for address of bootloader status byte.
+ * @def CHECKSUM_SIZE
+ * This is a macro for checksum size.
  */
-#define STATUS_ADDRESS (flash_address_t)(PROGMEM_SIZE - 2U)
-
-
+#define CHECKSUM_SIZE      2U
+/**
+ * @ingroup generic_bootloader_8bit
+ * @def END_OF_APP
+ * This is a macro for application end address.
+ */
+#define END_OF_APP          ((flash_address_t)((PROGMEM_SIZE - 1U) - CHECKSUM_SIZE))
+/**
+ * @ingroup generic_bootloader_8bit
+ * @def CHECKSUM_ADDRESS
+ * This is a macro for checksum store address.
+ */
+#define CHECKSUM_ADDRESS    (flash_address_t)(END_OF_APP + 1U)
+/**
+ * @ingroup generic_bootloader_8bit
+ * @def CHECKSUM_LENGTH
+ * This is a macro for checksum length.
+ */
+#define CHECKSUM_LENGTH     (CHECKSUM_ADDRESS - START_OF_APP)
 #endif //BL_BOOT_CONFIG_H
 

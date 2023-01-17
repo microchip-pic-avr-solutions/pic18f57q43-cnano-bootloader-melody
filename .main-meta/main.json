@@ -10,17 +10,17 @@
         "shortDescription": "Bootloader solution for PIC18F57Q43 using MCC Melody 8-Bit Bootloader Generator Library see https://www.npmjs.com/package/@mchp-mcc/bootloader-8bit?activeTab=readme",
         "ide": {
             "name": "MPLAB X",
-            "semverRange": ">=6.05.0"
+            "semverRange": "^6.05.0"
         },
         "compiler": [
             {
                 "name": "XC8",
-                "semverRange": ">=2.40.0"
+                "semverRange": "^2.40.0"
             }
         ],
         "dfp": {
             "name": "PIC18F-Q_DFP",
-            "semverRange": ">=1.13.211"
+            "semverRange": "^1.13.211"
         },
         "configurator": {
             "name": "MCC",

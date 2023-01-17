@@ -24,7 +24,7 @@
         },
         "configurator": {
             "name": "MCC",
-            "semverRange": ">=5.1.17"
+            "semverRange": "^5.1.17"
         },
         "device": {
             "metaDataVersion": "1.0.0",
@@ -40,7 +40,7 @@
         "peripherals": [
             "UART"
         ],
-        "keywords": ["Bootloader", "Secure", "Application", "UART", "MCC", "Melody"],
+        "keywords": ["Bootloader", "UART", "MCC", "Melody"],
         "additionalData": {
             "longDescription": {
                 "metaDataVersion": "1.0.0",

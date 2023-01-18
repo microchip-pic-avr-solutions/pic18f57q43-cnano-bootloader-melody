@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This repository contains the MPLAB X bootloader project example for PIC18F57Q43 device and a simple LED blinking end application project. The bootloader will be programmed into the microcontroller using MPLAB X IDE and the end application will be programmed using UBHA ([Unified Bootloader Host Application](https://www.microchip.com/en-us/tools-resources/develop/libraries/microchip-bootloaders/8-bit))
+This repository contains the MPLAB X bootloader project solution for PIC18F57Q43 device and a simple LED blinking end application project. The bootloader will be programmed into the microcontroller using MPLAB X IDE and the end application will be programmed using UBHA ([Unified Bootloader Host Application](https://www.microchip.com/en-us/tools-resources/develop/libraries/microchip-bootloaders/8-bit))
 
 ## Hardware Tools
 
@@ -19,6 +19,12 @@ This repository contains the MPLAB X bootloader project example for PIC18F57Q43 
 4. Melody Core v5.4.3 or later
 5. [Java Runtime Environment version 1.8.0_25 or older](https://www.oracle.com/java/technologies/javase/8u251-relnotes.html)
 6. Unified Bootloader Host Application ([UBHA](https://www.microchip.com/en-us/tools-resources/develop/libraries/microchip-bootloaders/8-bit))
+
+## Library Dependencies
+1. UART v1.8.0 or later
+2. Timer(Delay) v3.0.5 or later
+3. NVM v6.0.0 or later
+4. PIC10/PIC12/PIC16/PIC18 Device Library v5.12.0 or later
 
 ## Related Documentation
 
@@ -41,16 +47,16 @@ The PIC18F57Q43 Curiosity Nano Development Board is used as test platform. Conne
   1. Open the bootloader project PIC18F57Q43_BL.X in MPLAB X IDE. Right Click on PIC18F57Q43_BL.X and Set as Main Project.   
   ![PIC18F57Q43 Bootloader Project](Images/PIC18F57Q43_Bootloader_Project.png)
 
-  2. Open MCC from the toolbar and select MCC Melody. Download the latest versions of the required libraries. For bootloader generation, the required drivers are NVM, Timer(Delay) & UART and also the bootloader driver from the libraries section.  
+  2. Open MCC from the toolbar.  
   ![MPLAB Code Configurator](Images/Opening%20MCC.png)
 
-  3. Open CLKCTRL from System module in the Project Resources tab and configure the oscillator. In general, faster is better for more reliable communication.  
+  3. Open CLKCTRL from System module in the Project Resources tab. Make sure the Clock source is configured. In general, faster is better for more reliable communication.  
   ![Clock Setting for PIC18F57Q43](Images/ClockSetting.png)
 
-  4. Open Bootloader8-bit driver under libraries section in project resources. If the Bootloader driver is not available in the Project Resource, add it to the project by double clicking on it under Device Resources. Select UART1 from the UART Selector drop-down list.   
+  4. Open Bootloader8-bit driver under Libraries section in Project Resources. If the Bootloader driver is not available in the Project Resources, add it to the project by double clicking on it under Device Resources. Select UART1 from the UART Selector drop-down list. If you cannot see the Bootloader module in the Device Resources, navigate to the library release notes and follow the steps located in the Installing MCC Melody Bootloader 8-Bit Library section.   
   ![Bootloader UART Slection](Images/Bootloader_UART_Selection.PNG) 
 
-  5. Open UART module and select UART1 is from the UART PLIB Selector drop down list.   
+  5. Open UART module. Make sure UART1 is selected from the UART PLIB Selector drop down list.   
   ![USART1 Selection for PIC18F57Q43 Bootloader](Images/UART1_Selection.png)
 
   6. Open UART1_Peripheral tab from the Builder window. Make sure UART, UART Receiver and UART Transmitter are enabled.   
@@ -62,11 +68,13 @@ The PIC18F57Q43 Curiosity Nano Development Board is used as test platform. Conne
 
   8. Flash memory is divided into two areas by using the offset value. One is the bootloader section and the other is the end application section.
       Program Memory Flash for PIC18F57Q43 = 128k bytes
-      Rom range allocated(offset)/Bootloader Area = 0 to 2fff = 0x3000 bytes
+      Rom range allocated(offset)/Bootloader Area = 0 to 0x2fff = 0x3000 bytes
       End Application Space = Program Memory Size - Bootloader Area = 0x20000 - 0x3000 = 0x1D000 bytes   
+
+      Make note of these values. We will later use these values in the linker settings of the application project.         
   ![Program Memory Size](Images/Program_Memory_Flash.png)
 
-    Make note of these values. We will later use these values in the linker settings of the application project.
+    
   
   9. Open Delay driver from Timer module in the Project Resources tab. Generate delay driver is ON by default.   
   ![Timer Selection](Images/TimerSettings.png)
@@ -100,46 +108,39 @@ The end application really depends on what the customer wants the microcontrolle
   2.  Open MCC from the toolbar.   
   ![MPLAB Code Configurator](Images/Application_Opening_MCC.png)
   
-  3. Open CLKCTRL from System module in the Project Resources tab and configure the oscillator.   
+  3. Open CLKCTRL from System module in the Project Resources tab. Make sure the Clock source is configured. In general, faster is better for more reliable communication.   
   ![Clock Settings](Images/Application_Clock_Setting.png)
 
   4. On-board LED is configured by setting RF3 as output pin.   
   ![Pin Configuration for PIC18F57Q43](Images/Application_Pin_Setting.png)
 
-  5. Add the Delay timer to the project resources by double clicking on it under Device Resources/Drivers/Timer/DELAY. This is used to add delay for LED toggling.   
+  5. Delay timer used to add delay for LED toggling.   
   ![Delay driver](Images/App_Delay_Driver.PNG)
 
   6. Press 'Generate Button' to generate the project code. Make sure the generation is completed successfully.      
   ![Generate Code](Images/App_Generate_Code.PNG)
 
-  7. For a blinking LED application, add the following code to main.c in Source Files under the project folder. The delay.h header file must also be included in the main file.   
+  7. For a blinking LED application, add the following code is added to main.c in Source Files under the project folder. The delay.h header file must also be included in the main file.   
   ![LED Blink Code](Images/led_blink_code.png)
   
-  8. A certificate.c file must be created in the Source Folder. Right click on Source Folder, select New->Other.   
-  ![New File Creation](Images/New_Certificate_File.png)
-
-  9. In the New File window, select C under Categories and then select C Source File under File Types. Click Next.   
-  ![New File Window](Images/Certificate_C_Source_File.PNG)
-
-  10. Provide the filename certificate and click Finish.   
-  ![Certificate C Source File](Images/Certificate_File_Creattion.PNG)
-
-  11. Add the code in the following image to the newly created certificate.c file. This reserves the last 4bytes of the Flash memory and writes them with 0xFFFFFFFF. This is later updated with the correct Checksum or CRC value calculated post build.   
+  8. Certificate.c file reserves the last 4bytes of the Flash memory and writes them with 0xFFFFFFFF. This is later updated with the correct Checksum or CRC value calculated post build.   
   ![Certificate.c File](Images/Certificate_File.PNG)
   
-  12. Next step is to configure the project properties. This can be opened by selecting "File->Project Properties". Select "PIC18F57Q43 Curiosity Nano" under Connected Hardware Tool, DFP version under Packs and the XC8 version under compiler toolchain.   
+  9. Next step is to configure the project properties. This can be opened by selecting "File->Project Properties". Select "PIC18F57Q43 Curiosity Nano" under Connected Hardware Tool, DFP version under Packs and the XC8 version under compiler toolchain.   
     ![Project Properties](Images/Application_Project_Properties.png)
 
-  13. For the end application project, we also need to configure the linker setting for the verification scheme used. Please checkout the Compiler and Linker Settings section for the details.
+  10. For the end application project, we also need to configure the linker setting for the verification scheme used. Please checkout the Compiler and Linker Settings section for the details.
 
-  14. We have completed the needed configurations for the end application project. Compile and build the project by clicking the Clean and Build Main Project button on the toolbar.
+  11. We have completed the needed configurations for the end application project. Compile and build the project by clicking the Clean and Build Main Project button on the toolbar.
 
-  15. The application HEX can be loaded on the microcontroller through Microchip's Unified Bootloader Host Application(UBHA).
+  12. The application HEX can be loaded on the microcontroller through Microchip's Unified Bootloader Host Application(UBHA).
 
 
 ## Compiler and Linker Settings
 
-The following section is intended to provide an explanation of the compiler and linker settings utilized in the PIC18F57Q43 Application project settings. These settings are already established in the examples, this is simply here to provide a depth of understanding. The example below uses Checksum verification scheme for demonstration.
+The following section is intended to provide an explanation of the compiler and linker settings utilized in the PIC18F57Q43 Application project. These settings are already established in the examples, this is simply here to provide a depth of understanding. 
+
+Checksum, CRC16, CRC32 and Offset (Reset Vector and Status Flag) verification schemes are supported by the Bootloader library. The example below uses Checksum verification scheme for demonstration. For more details, refer Melody Bootloader User's Guide.
 
 ### Linker > Additional Options
  #### Note: More information on the linker settings can be found in the Hexmate User Guide
@@ -152,7 +153,7 @@ Here,
 Width -> Width of Checksum - This value is used because the checksum calculated is 2 bytes and it will occupy the last 2bytes of the Program Memory. For CRC32, checksum value is 4 bytes and CRC16 & Checksum value is 2 bytes.
 1FFFE -> Checksum value will be stored here for 2bytes
 algorithm -> Checksum verification schemes algorithm value
-polynomial ->  Hexadecimal value used when calculating CRC. For more information, refer the Melody 8-bit Bootloader_VerificationSchemas section in the Melody Bootloader user's guide.
+polynomial ->  Hexadecimal value used when calculating CRC. For more information, refer the Melody 8-bit Bootloader_VerificationSchemas section in the Melody Bootloader User's Guide.
 
 Linker Additional Setting for the verification schemes:
   a) CRC16 -> 3000-1FFFD@1FFFE,width=-2,algorithm=5,offset=FFFF,polynomial=1021
@@ -162,28 +163,30 @@ Linker Additional Setting for the verification schemes:
 
 ## Application Hex file is programmed using the UBHA
 
-The application HEX file is loaded in the controller using Microchip's Unified Bootloader Host Application. Before programming the controller with the Application HEX file, make sure the controller is programmed with the bootloader. User interface of UBHA looks like:   
-![GUI of UBHA](Images/UBHA.png)
+The application HEX file is loaded in the controller using Microchip's Unified Bootloader Host Application. Before programming the controller with the Application HEX file, make sure the controller is programmed with the bootloader.   
 
- There are a couple of things to take care of in UBHA:
+ Follow the steps below to load a new frimware image onto the device.
 
-   1. COM port for PIC18F57Q43 Curiosity Nano Board can be found out from the Device Manager.   
+   1. Download and Launch Unified Bootloader Host Application.   
+   ![GUI of UBHA](Images/UBHA.png)
+   
+   2. COM port for PIC18F57Q43 Curiosity Nano Board can be found out from the Device Manager.   
    ![Curiosity Nano COM Port](Images/COM_Port_Number.png)
 
-   2. Select PIC18  device architecture.   
+   3. Select PIC18  device architecture.   
    ![Device Architecture](Images/Device%20Architecture.png)
 
-   3. Configure the serial port through "Settings->Serial". Select the correct COM port and BaudRate.   
+   4. Configure the serial port through "Settings->Serial". Select the correct COM port and BaudRate.   
    ![Serial Port Selection](Images/Serial%20Port%20Settings.png)
 
-   4. Opening the console to get all the messages printed is ideal for debugging or communication failures. Console can be found under the 'Tools' tab.   
+   5. Opening the console to get all the messages printed is ideal for debugging or communication failures. Console can be found under the 'Tools' tab.   
   ![Console for logs](Images/UBHA%20Console.png)
 
-   5. Load the End application Hex file by selecting File->Open/Load File. Hex file will be present at “Application Project Folder\dist\verification_scheme\production”.   
+   6. Load the End application Hex file by selecting File->Open/Load File. Hex file will be present at “Application Project Folder\dist\verification_scheme\production”.   
   ![Selected HEX file](Images/Selected%20Hex%20File.png) 
 
-   6. Set the program memory size depending on the target device. For PIC18F57Q43, the program memory size is 0x20000. Enter the offset programmed previously in the bootloader project, i.e. 0x3000. The size of every location depends on the target device. Some devices have word-addressable Flash and others have it byte-addressable. For PIC16 devices, convert the words into bytes and then use for configuration in UBHA.   
+   7. Set the program memory size depending on the target device. For PIC18F57Q43, the program memory size is 0x20000. Enter the offset programmed previously in the bootloader project, i.e. 0x3000. The size of every location depends on the target device. Some devices have word-addressable Flash and others have it byte-addressable. For PIC16 devices, convert the word addresses into bytes before inputing them into UBHA. (Example: 0x800 Words x 0x2 => 0x1000 Bytes).    
    ![UBHA Bootloader Offset](Images/UBHA_Bootloader_Offset.PNG)
    
-   7. Click on the Program Device button. Once the device is programmed, the bootloader will disconnect from the COM port. Open Tools->Console to view output/status.      
+   8. Click on the Program Device button. Once the device is programmed, the bootloader will disconnect from the COM port. Open Tools->Console to view output/status and the LED blinking on the device.      
   ![Successful Programming](Images/UBHA%20completed.png)   

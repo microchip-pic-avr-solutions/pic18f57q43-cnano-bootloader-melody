@@ -74,8 +74,6 @@ The PIC18F57Q43 Curiosity Nano Development Board is used as test platform. Conne
       Make note of these values. We will later use these values in the linker settings of the application project.         
   ![Program Memory Size](Images/Program_Memory_Flash.png)
 
-    
-  
   9. Open Delay driver from Timer module in the Project Resources tab. Generate delay driver is ON by default.   
   ![Timer Selection](Images/TimerSettings.png)
 
@@ -114,7 +112,7 @@ The end application really depends on what the customer wants the microcontrolle
   4. On-board LED is configured by setting RF3 as output pin.   
   ![Pin Configuration for PIC18F57Q43](Images/Application_Pin_Setting.png)
 
-  5. Delay timer used to add delay for LED toggling.   
+  5. Delay timer is used to add delay for LED toggling.   
   ![Delay driver](Images/App_Delay_Driver.PNG)
 
   6. Press 'Generate Button' to generate the project code. Make sure the generation is completed successfully.      
@@ -163,9 +161,11 @@ Linker Additional Setting for the verification schemes:
 
 ## Application Hex file is programmed using the UBHA
 
+The Unified Bootloader Host Application is a Java utility that was created to simplify the development and testing process for anyone configuring our basic bootloader. You will more than likely be writing your own host to interface with your specific bootloader firmware but UBHA will help you get started with the basic bootloader firmware present in the Melody 8-bit Bootloader Library.
+
 The application HEX file is loaded in the controller using Microchip's Unified Bootloader Host Application. Before programming the controller with the Application HEX file, make sure the controller is programmed with the bootloader.   
 
- Follow the steps below to load a new frimware image onto the device.
+ Follow the steps below to load a new firmware image onto the device.
 
    1. Download and Launch Unified Bootloader Host Application.   
    ![GUI of UBHA](Images/UBHA.png)
@@ -188,5 +188,5 @@ The application HEX file is loaded in the controller using Microchip's Unified B
    7. Set the program memory size depending on the target device. For PIC18F57Q43, the program memory size is 0x20000. Enter the offset programmed previously in the bootloader project, i.e. 0x3000. The size of every location depends on the target device. Some devices have word-addressable Flash and others have it byte-addressable. For PIC16 devices, convert the word addresses into bytes before inputing them into UBHA. (Example: 0x800 Words x 0x2 => 0x1000 Bytes).    
    ![UBHA Bootloader Offset](Images/UBHA_Bootloader_Offset.PNG)
    
-   8. Click on the Program Device button. Once the device is programmed, the bootloader will disconnect from the COM port. Open Tools->Console to view output/status and the LED blinking on the device.      
+   8. Click on the Program Device button. Once the device is programmed, the bootloader will disconnect from the COM port and the device LED should be blinking now.   
   ![Successful Programming](Images/UBHA%20completed.png)   

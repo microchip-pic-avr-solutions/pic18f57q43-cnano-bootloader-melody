@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This repository contains the MPLAB X bootloader project solution for PIC18F57Q43 device and a simple LED blinking end application project. The bootloader will be programmed into the microcontroller using MPLAB X IDE and the end application will be programmed using UBHA ([Unified Bootloader Host Application](https://www.microchip.com/en-us/tools-resources/develop/libraries/microchip-bootloaders/8-bit))
+This example uses the 8-bit Melody Bootloader library to show how to configure the bootloader on PIC18F57Q43 along with a simple LED blinking end application project. The bootloader will be programmed into the microcontroller using MPLAB X IDE and the end application will be programmed using UBHA ([Unified Bootloader Host Application](https://www.microchip.com/en-us/tools-resources/develop/libraries/microchip-bootloaders/8-bit))
 
 ## Hardware Tools
 
@@ -38,7 +38,7 @@ This repository contains the MPLAB X bootloader project solution for PIC18F57Q43
 
 ## Setup
 
-The PIC18F57Q43 Curiosity Nano Development Board is used as test platform. Connect the device to the PC using the USB cable before proceeding on working with the project.   
+The PIC18F57Q43 Curiosity Nano Development Board is used as the test platform. To setup the board, connect the device to the PC using the USB cable before proceeding on working with the project.   
 ![PIC18F57Q43 Curiosity Nano Develpment Board](Images/PIC18F57Q43.png)
 
 
@@ -53,7 +53,7 @@ The PIC18F57Q43 Curiosity Nano Development Board is used as test platform. Conne
   3. Open CLKCTRL from System module in the Project Resources tab. Make sure the Clock source is configured. In general, faster is better for more reliable communication.  
   ![Clock Setting for PIC18F57Q43](Images/ClockSetting.png)
 
-  4. Open Bootloader8-bit driver under Libraries section in Project Resources. If the Bootloader driver is not available in the Project Resources, add it to the project by double clicking on it under Device Resources. Select UART1 from the UART Selector drop-down list. If you cannot see the Bootloader module in the Device Resources, navigate to the library release notes and follow the steps located in the Installing MCC Melody Bootloader 8-Bit Library section.   
+  4. Open Bootloader8-bit driver under Libraries section in Project Resources. If the Bootloader driver is not available in the Project Resources, add it to the project by double clicking on it under Device Resources. If you cannot see the Bootloader module in the Device Resources, navigate to the library release notes and follow the steps located in the Installing MCC Melody Bootloader 8-Bit Library section.   
   ![Bootloader UART Slection](Images/Bootloader_UART_Selection.PNG) 
 
   5. Open UART module. Make sure UART1 is selected from the UART PLIB Selector drop down list.   

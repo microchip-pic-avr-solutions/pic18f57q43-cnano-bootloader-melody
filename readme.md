@@ -68,7 +68,9 @@ The PIC18F57Q43 Curiosity Nano Development Board is used as the test platform. T
 
   8. Flash memory is divided into two areas by using the offset value. One is the bootloader section and the other is the end application section.
       Program Memory Flash for PIC18F57Q43 = 128k bytes
+
       Rom range allocated(offset)/Bootloader Area = 0 to 0x2fff = 0x3000 bytes
+
       End Application Space = Program Memory Size - Bootloader Area = 0x20000 - 0x3000 = 0x1D000 bytes   
 
       Make note of these values. We will later use these values in the linker settings of the application project.         
@@ -83,7 +85,7 @@ The PIC18F57Q43 Curiosity Nano Development Board is used as the test platform. T
   11. Open the Pin Grid View. RF3 is used for the Bootloader Indication pin (output), RB4 is the Bootloader Entry pin (input), Tx and Rx are on RF0 and RF1. Select the Pin Module from the project resources, System option. Pins are configured to digital by deselecting the analog check box option for all the pins used. Start high is enabled for BL_INDICATOR (RF3) pin.   
   ![Pin Settings for PIC18F57Q43 Bootloader](Images/Pin_Settings.png)
 
-  12. Press 'Generate Button' to generate the project code. Make sure the generation is completed successfully.   
+  12. Press 'Generate' to generate the project code. Make sure the generation is completed successfully.   
   ![Generate Code](Images/Generate_Code.png)
 
   13. Next step is to configure the project properties. This can be opened by selecting "File->Project Properties". Select "PIC18F57Q43 Curiosity Nano" under Connected Hardware Tool, DFP version under Packs and the XC8 version under compiler toolchain.   
@@ -106,22 +108,22 @@ The end application really depends on what the customer wants the microcontrolle
   2.  Open MCC from the toolbar.   
   ![MPLAB Code Configurator](Images/Application_Opening_MCC.png)
   
-  3. Open CLKCTRL from System module in the Project Resources tab. Make sure the Clock source is configured. In general, faster is better for more reliable communication.   
+  3. Open CLKCTRL from System module in the Project Resources tab. Make sure the Clock bits are configured to the settings observed in the bootloader. This will help during testing to prevent the configuration bits from causing a Checksum mismatch with UBHA.
   ![Clock Settings](Images/Application_Clock_Setting.png)
 
   4. On-board LED is configured by setting RF3 as output pin.   
   ![Pin Configuration for PIC18F57Q43](Images/Application_Pin_Setting.png)
 
-  5. Delay timer is used to add delay for LED toggling.   
+  5. Delay timer is used to add a delay between toggling the LED.  
   ![Delay driver](Images/App_Delay_Driver.PNG)
 
-  6. Press 'Generate Button' to generate the project code. Make sure the generation is completed successfully.      
+  6. Press 'Generate' to generate the project code. Make sure the generation is completed successfully.      
   ![Generate Code](Images/App_Generate_Code.PNG)
 
   7. For a blinking LED application, add the following code is added to main.c in Source Files under the project folder. The delay.h header file must also be included in the main file.   
   ![LED Blink Code](Images/led_blink_code.png)
   
-  8. Certificate.c file reserves the last 4bytes of the Flash memory and writes them with 0xFFFFFFFF. This is later updated with the correct Checksum or CRC value calculated post build.   
+  8. Certificate.c file reserves the last 4bytes of the Flash memory and writes them with 0xFFFFFFFF. This is later updated with the correct Checksum or CRC value calculated during the post build step.   
   ![Certificate.c File](Images/Certificate_File.PNG)
   
   9. Next step is to configure the project properties. This can be opened by selecting "File->Project Properties". Select "PIC18F57Q43 Curiosity Nano" under Connected Hardware Tool, DFP version under Packs and the XC8 version under compiler toolchain.   
@@ -136,7 +138,7 @@ The end application really depends on what the customer wants the microcontrolle
 
 ## Compiler and Linker Settings
 
-The following section is intended to provide an explanation of the compiler and linker settings utilized in the PIC18F57Q43 Application project. These settings are already established in the examples, this is simply here to provide a depth of understanding. 
+The following section is intended to provide an explanation of the compiler and linker settings utilized in the PIC18F57Q43 Application project. These settings are already configured in the examples, this is simply here to provide a depth of understanding and to provide help when trying to set a new size. 
 
 Checksum, CRC16, CRC32 and Offset (Reset Vector and Status Flag) verification schemes are supported by the Bootloader library. The example below uses Checksum verification scheme for demonstration. For more details, refer Melody Bootloader User's Guide.
 

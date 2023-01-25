@@ -148,12 +148,15 @@ Codeoffset = 3000h
 Checksum = 3000-1FFFD@1FFFE,width=-2,algorithm=2
 
 Here,
-3000 -> Bootloader offset value
-1FFFD -> Program Memory Size 
-Width -> Width of Checksum - This value is used because the checksum calculated is 2 bytes and it will occupy the last 2bytes of the Program Memory. For CRC32, checksum value is 4 bytes and CRC16 & Checksum value is 2 bytes.
-1FFFE -> Checksum value will be stored here for 2bytes
-algorithm -> Checksum verification schemes algorithm value
-polynomial ->  Hexadecimal value used when calculating CRC. For more information, refer the Melody 8-bit Bootloader_VerificationSchemas section in the Melody Bootloader User's Guide.
+|3000       | Bootloader offset value                                                            |
+|1FFFD      | Program Memory Size                                                                |
+|Width      | Width of Checksum - This value is used because the checksum calculated is 2 bytes. |
+|           | It will occupy the last 2bytes of the Program Memory.                              |
+|           | For CRC32, checksum value is 4 bytes and CRC16 & Checksum value is 2 bytes.        |
+|1FFFE      | Checksum value will be stored here for 2bytes                                      |
+|algorithm  | Checksum verification schemes algorithm value                                      |
+|polynomial | Hexadecimal value used when calculating CRC.                                       |
+|           | For more information, refer the Melody 8-bit Bootloader_VerificationSchemas section in the Melody Bootloader User's Guide.|
 
 Linker Additional Setting for the verification schemes:
   a) CRC16 -> 3000-1FFFD@1FFFE,width=-2,algorithm=5,offset=FFFF,polynomial=1021

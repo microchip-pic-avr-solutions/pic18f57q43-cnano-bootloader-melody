@@ -67,14 +67,16 @@ The PIC18F57Q43 Curiosity Nano Development Board is used as the test platform. T
     ![Bootloader Settings](Images/Bootloader_Settings.PNG)
 
   8. Flash memory is divided into two areas by using the offset value. One is the bootloader section and the other is the end application section.
-      Program Memory Flash for PIC18F57Q43 = 128k bytes
 
-      Rom range allocated(offset)/Bootloader Area = 0 to 0x2fff = 0x3000 bytes
+     | Memory Region                                | Memory Size                                                              |
+     | -------------------------------------------- | ------------------------------------------------------------------------ |
+     | Program Memory Flash for PIC18F57Q43         | 128k bytes                                                               | 
+     | Rom range allocated(offset)/Bootloader Area  | 0 to 0x2fff = 0x3000 bytes                                               |
+     | End Application Space                        | Program Memory Size - Bootloader Area = 0x20000 - 0x3000 = 0x1D000 bytes |
 
-      End Application Space = Program Memory Size - Bootloader Area = 0x20000 - 0x3000 = 0x1D000 bytes   
+      Make note of these values. We will later use these values in the linker settings of the application project.   
 
-      Make note of these values. We will later use these values in the linker settings of the application project.         
-  ![Program Memory Size](Images/Program_Memory_Flash.png)
+      ![Program Memory Size](Images/Program_Memory_Flash.png)
 
   9. Open Delay driver from Timer module in the Project Resources tab. Generate delay driver is ON by default.   
   ![Timer Selection](Images/TimerSettings.png)
@@ -108,7 +110,7 @@ The end application really depends on what the customer wants the microcontrolle
   2.  Open MCC from the toolbar.   
   ![MPLAB Code Configurator](Images/Application_Opening_MCC.png)
   
-  3. Open CLKCTRL from System module in the Project Resources tab. Make sure the Clock bits are configured to the settings observed in the bootloader. This will help during testing to prevent the configuration bits from causing a Checksum mismatch with UBHA.
+  3. Open CLKCTRL from System module in the Project Resources tab. Make sure the Clock bits are configured to the settings observed in the bootloader. This will help during testing to prevent the configuration bits from causing a Checksum mismatch with UBHA.   
   ![Clock Settings](Images/Application_Clock_Setting.png)
 
   4. On-board LED is configured by setting RF3 as output pin.   
@@ -137,8 +139,8 @@ The end application really depends on what the customer wants the microcontrolle
 
 
 ## Compiler and Linker Settings
-
-The following section is intended to provide an explanation of the compiler and linker settings utilized in the PIC18F57Q43 Application project. These settings are already configured in the examples, this is simply here to provide a depth of understanding and to provide help when trying to set a new size. 
+ 
+The following section is intended to provide an explanation of the compiler and linker settings utilized in the PIC18F57Q43 Application project. These settings are already configured in the examples, this is simply here to provide a depth of understanding and to provide help incase you want to try setting a new size.
 
 Checksum, CRC16, CRC32 and Offset (Reset Vector and Status Flag) verification schemes are supported by the Bootloader library. The example below uses Checksum verification scheme for demonstration. For more details, refer Melody Bootloader User's Guide.
 
@@ -147,21 +149,23 @@ Checksum, CRC16, CRC32 and Offset (Reset Vector and Status Flag) verification sc
 Codeoffset = 3000h 
 Checksum = 3000-1FFFD@1FFFE,width=-2,algorithm=2
 
-Here,
-|3000       | Bootloader offset value                                                            |
-|1FFFD      | Program Memory Size                                                                |
-|Width      | Width of Checksum - This value is used because the checksum calculated is 2 bytes. |
-|           | It will occupy the last 2bytes of the Program Memory.                              |
-|           | For CRC32, checksum value is 4 bytes and CRC16 & Checksum value is 2 bytes.        |
-|1FFFE      | Checksum value will be stored here for 2bytes                                      |
-|algorithm  | Checksum verification schemes algorithm value                                      |
-|polynomial | Hexadecimal value used when calculating CRC.                                       |
-|           | For more information, refer the Melody 8-bit Bootloader_VerificationSchemas section in the Melody Bootloader User's Guide.|
+| Value      | Description                                                                        |
+|----------- |------------------------------------------------------------------------------------|
+| 3000       | Bootloader offset value                                                            |
+| 1FFFD      | Program Memory Size                                                                |
+| Width      | Width of Checksum - This value is used because the checksum calculated is 2 bytes. It will occupy the last 2bytes of the Program Memory.For CRC32, checksum value is 4 bytes and CRC16 & Checksum value is 2 bytes |
+| 1FFFE      | Checksum value will be stored here for 2bytes                                      |
+| algorithm  | Checksum verification schemes algorithm value                                      |
+| polynomial | Hexadecimal value used when calculating CRC. For more information, refer the Melody 8-bit Bootloader_VerificationSchemas section in the Melody Bootloader User's Guide |
 
 Linker Additional Setting for the verification schemes:
-  a) CRC16 -> 3000-1FFFD@1FFFE,width=-2,algorithm=5,offset=FFFF,polynomial=1021
-  b) CRC32 -> 3000-1FFFB@1FFFC,width=-4,algorithm=-5,offset=FFFFFFFF,polynomial=04C11DB7
-  c) Checksum -> 3000-1FFFD@1FFFE,width=-2,algorithm=2    
+
+|Verification Scheme | Linker Additional Settings                                                 |
+|------------------- | -------------------------------------------------------------------------- |
+| CRC16              | 3000-1FFFD@1FFFE,width=-2,algorithm=5,offset=FFFF,polynomial=1021          |
+| CRC32              | 3000-1FFFB@1FFFC,width=-4,algorithm=-5,offset=FFFFFFFF,polynomial=04C11DB7 |
+| Checksum           | 3000-1FFFD@1FFFE,width=-2,algorithm=2                                      |
+
 ![PIC18F57Q43 Linker Settings](Images/Application_Linker_Settings.png)
 
 ## Application Hex file is programmed using the UBHA

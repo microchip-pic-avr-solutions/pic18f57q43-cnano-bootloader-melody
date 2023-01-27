@@ -38,7 +38,7 @@ This example uses the 8-bit Melody Bootloader library to show how to configure t
 
 ## Setup
 
-The PIC18F57Q43 Curiosity Nano Development Board is used as the test platform. To setup the board, connect the device to the PC using the USB cable before proceeding on working with the project.   
+The PIC18F57Q43 Curiosity Nano Development Board is used as the test platform. To setup the board, connect the device to the PC using the USB cable before proceeding with the project.   
 ![PIC18F57Q43 Curiosity Nano Develpment Board](Images/PIC18F57Q43.png)
 
 

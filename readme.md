@@ -53,7 +53,7 @@ The PIC18F57Q43 Curiosity Nano Development Board is used as the test platform. T
   3. Open CLKCTRL from System module in the Project Resources tab. Make sure the Clock source is configured. In general, faster is better for more reliable communication.  
   ![Clock Setting for PIC18F57Q43](Images/ClockSetting.png)
 
-  4. Open Bootloader8-bit driver under Libraries section in Project Resources. If the Bootloader driver is not available in the Project Resources, add it to the project by double clicking on it under Device Resources. If you cannot see the Bootloader module in the Device Resources, navigate to the library release notes and follow the steps located in the Installing MCC Melody Bootloader 8-Bit Library section.   
+  4. Open the Bootloader8-bit driver under the Libraries section in the Project Resources tab. If the Bootloader driver is not available in the Project Resources, add it to the project by double clicking on it under Device Resources. If you cannot see the Bootloader module in the Device Resources, navigate to the library release notes and follow the steps located in the Installing MCC Melody Bootloader 8-Bit Library section.   
   ![Bootloader UART Slection](Images/Bootloader_UART_Selection.PNG) 
 
   5. Open UART module. Make sure UART1 is selected from the UART PLIB Selector drop down list.   

@@ -142,7 +142,7 @@ The end application really depends on what the customer wants the microcontrolle
  
 The following section is intended to provide an explanation of the compiler and linker settings utilized in the PIC18F57Q43 Application project. These settings are already configured in the examples, this is simply here to provide a depth of understanding and to provide help incase you want to try setting a new size.
 
-Checksum, CRC16, CRC32 and Offset (Reset Vector and Status Flag) verification schemes are supported by the Bootloader library. The example below uses Checksum verification scheme for demonstration. For more details, refer Melody Bootloader User's Guide.
+Checksum, CRC16, CRC32 and Offset (Reset Vector and Status Flag) verification schemes are supported by the Bootloader library. The example below uses the Checksum verification scheme for demonstration. For more details, refer to the Melody Bootloader User's Guide.
 
 ### Linker > Additional Options
  #### Note: More information on the linker settings can be found in the Hexmate User Guide

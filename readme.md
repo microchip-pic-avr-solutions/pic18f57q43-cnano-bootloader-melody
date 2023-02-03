@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This example uses the 8-bit Melody Bootloader library to show how to configure the bootloader for the PIC18F57Q43 along with a simple LED blinking end application project. The bootloader will be programmed into the microcontroller using MPLAB X IDE and the end application will be programmed using UBHA ([Unified Bootloader Host Application](https://www.microchip.com/en-us/tools-resources/develop/libraries/microchip-bootloaders/8-bit))
+This example uses the 8-bit Melody Bootloader library to show how to configure the bootloader for the PIC18F57Q43 along with a simple LED blinking end application project. The bootloader will be programmed into the microcontroller using MPLAB X IDE and the end application will be programmed using UBHA ([Unified Bootloader Host Application](https://www.microchip.com/en-us/tools-resources/develop/libraries/microchip-bootloaders/8-bit)).
 
 ## Hardware Tools
 
@@ -133,7 +133,7 @@ The end application really depends on what the customer wants the microcontrolle
 
   10. For the end application project, we also need to configure the linker setting for the verification scheme used. Please checkout the Compiler and Linker Settings section for the details.
 
-  11. We have completed the needed configurations for the end application project. Compile and build the project by clicking the Clean and Build Main Project button on the toolbar.
+  11. We have completed the needed configurations for the end application project. Compile and build the project by clicking the Clean and Build Main Project on the toolbar.
 
   12. The application HEX can be loaded on the microcontroller through Microchip's Unified Bootloader Host Application(UBHA).
 
@@ -153,7 +153,7 @@ Checksum, CRC16, CRC32 and Offset (Reset Vector and Status Flag) verification sc
 |------------------- | -------------------------------------------------------------------------- |------------------------------------------------------------ |
 | CRC16              | 3000-1FFFD@1FFFE,width=-2,algorithm=5,offset=FFFF,polynomial=1021          | 3000       -> Bootloader offset value                       |
 | CRC32              | 3000-1FFFB@1FFFC,width=-4,algorithm=-5,offset=FFFFFFFF,polynomial=04C11DB7 | 1FFFD      -> Program Memory Size                           |
-| Checksum           | 3000-1FFFD@1FFFE,width=-2,algorithm=2                                      | Width      -> Width of Checksum - This value is used because the checksum calculated is 2 bytes. It will occupy the last 2bytes of the Program Memory.For CRC32, checksum value is 4 bytes and CRC16 & Checksum value is 2 bytes          |
+| Checksum           | 3000-1FFFD@1FFFE,width=-2,algorithm=2                                      | width      -> Width of Checksum - This value is used because the checksum calculated is 2 bytes. It will occupy the last 2bytes of the Program Memory.For CRC32, checksum value is 4 bytes and CRC16 & Checksum value is 2 bytes          |
 |                    |                                                                            | 1FFFE      -> Checksum value will be stored here for 2bytes |
 |                    |                                                                            | algorithm  -> Checksum verification schemes algorithm value |
 |                    |                                                                            | polynomial -> Hexadecimal value used when calculating CRC. For more information, refer the Melody 8-bit Bootloader_VerificationSchemas section in the Melody Bootloader User's Guide |

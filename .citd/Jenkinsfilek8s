@@ -1,7 +1,12 @@
 // Jenkinsfilek8s v1.2.0
 
 pipeline {
-    agent none
+    agent {
+		kubernetes {
+			defaultContainer 'pic18f57q43-cnano-bootloader-melody-xc8-mplabx'
+			yamlFile '.citd/cloudprovider.yml'
+		}
+	}
 
     environment {
         GITHUB_OWNER = 'microchip-pic-avr-solutions'
@@ -24,79 +29,188 @@ pipeline {
         TEAMS_WEBHOOK = 'https://microchiptechnology.webhook.office.com/webhookb2/80151a3e-5353-42ab-891b-a7d893a2905b@3f4057f3-b418-4d4e-ba84-d55b4e897d88/IncomingWebhook/693f2426000d42f18354ef88c5fd9393/15b788d6-b5bb-4386-830b-9ef7f573e5ed'
         SEMVER_REGEX = '^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)+$'
     }
+
+    parameters {
+        string( name: 'NOTIFICATION_EMAIL',
+                defaultValue: 'LibraryDevTeam_MCU8@microchip.com',
+                description: "Email to send build failure and fixed notifications.")
+    }
+
     options {
         timestamps()
-        timeout(time: 30, unit: 'MINUTES')
+        timeout(time: 40, unit: 'MINUTES')
     }
 
     stages {
-        stage('Build and deploy') {
-            agent {
-                kubernetes {
-                    defaultContainer 'pic18f57q43-cnano-bootloader-melody-xc8-mplabx'
-                    yamlFile '.citd/cloudprovider.yml'
-                }
-            }
-            stages {
-                stage('Checkout') {
-                    steps {
-                        checkout scm
-                    }
-                }
-                stage('metadata') {
-                    steps {
-			        	script {
-				        	execute("pip install jsonschema")
-					        execute("git clone https://bitbucket.microchip.com/scm/citd/metadata-schema.git")
-			    		    execute("git clone https://bitbucket.microchip.com/scm/citd/tool-metadata-validator.git")
-				    	    execute("cd tool-metadata-validator && python metadata-validator.py -data '../.main-meta/main.json' -schema '../metadata-schema/main-schema.json'")
-				        }
-                    }
-                }
-                stage('Pre-build') {
-			        steps {
-				        script {
-                            MPLABX_PATH= sh (script: 'update-alternatives --list MPLABX_PATH',returnStdout: true).trim()
-                            COMPILER_PATH= sh (script: 'update-alternatives --list XC8_PATH',returnStdout: true).trim()
-                            def pDir = "${MPLABX_PATH}/packs"
-                            def ver = COMPILER_PATH.split('/')[4].substring(1)
-
-                            execute("git clone https://bitbucket.microchip.com/scm/citd/tool-mplabx-c-project-generator.git")
-                            execute("cd tool-mplabx-c-project-generator && node configGenerator.js sp=../ v8=${ver} packs=${pDir}")
-                        }
-                    }
-                }
-                stage('Build') {
-                    steps {
-                        script {
-                            // Install xml2js dependency needed by the tool-mplabx-c-build scripts
-                            execute("npm i xml2js")
-                            execute("git clone https://bitbucket.microchip.com/scm/citd/tool-mplabx-c-build.git")
-                            execute("cd tool-mplabx-c-build && node buildLauncher.js sp=../ rp=./output genMK=true")
-                            // Store build artifacts for later publishing to Artifactory
-                            zipFirmwareArtifact("PIC18F57Q43_BL.X/dist/XC8/production", "XC8")
-                            stash includes: "${BUILD_FOLDER}/${env.ARTIFACTORY_MODULE}-XC8.zip", name: 'artifacts-xc8'
-                        }
-                        archiveArtifacts artifacts: "tool-mplabx-c-build/output/**", allowEmptyArchive: true, fingerprint: true
-                    }
-                }
+		stage('Checkout') {
+			steps {
+				checkout scm
 			}
 		}
-    }
+		stage('metadata') {
+			steps {
+				script {
+					execute("pip install jsonschema")
+					execute("git clone https://bitbucket.microchip.com/scm/citd/metadata-schema.git")
+					execute("git clone https://bitbucket.microchip.com/scm/citd/tool-metadata-validator.git")
+					execute("cd tool-metadata-validator && python metadata-validator.py -data '../.main-meta/main.json' -schema '../metadata-schema/main-schema.json'")
+				}
+			}
+		}
+		stage('Pre-build') {
+			steps {
+				script {
+					MPLABX_PATH= sh (script: 'update-alternatives --list MPLABX_PATH',returnStdout: true).trim()
+					COMPILER_PATH= sh (script: 'update-alternatives --list XC8_PATH',returnStdout: true).trim()
+					def pDir = "${MPLABX_PATH}/packs"
+					def ver = COMPILER_PATH.split('/')[4].substring(1)
+
+					execute("git clone https://bitbucket.microchip.com/scm/citd/tool-mplabx-c-project-generator.git")
+					execute("cd tool-mplabx-c-project-generator && node configGenerator.js sp=../ v8=${ver} packs=${pDir}")
+				}
+			}
+		}
+		stage('Build') {
+			steps {
+				script {
+					// Install xml2js dependency needed by the tool-mplabx-c-build scripts
+					execute("npm i xml2js")
+					execute("git clone https://bitbucket.microchip.com/scm/citd/tool-mplabx-c-build.git")
+					execute("cd tool-mplabx-c-build && node buildLauncher.js sp=../ rp=./output genMK=true")
+					// Store build artifacts for later publishing to Artifactory
+					zipFirmwareArtifact("PIC18F57Q43_BL.X/dist/XC8/production", "XC8")
+					stash includes: "${BUILD_FOLDER}/${env.ARTIFACTORY_MODULE}-XC8.zip", name: 'artifacts-xc8'
+				}
+			}	
+		}
+        stage('GitHub-Deploy') {
+            when {
+                // Only deploy if tests passed
+                equals expected: 'SUCCESS', actual: currentBuild.currentResult;
+                not {
+                    changeRequest()
+                }
+                // Only deploy pushes to master
+                branch 'master'
+            }
+            steps {
+                container('rsync') {
+                    script {
+                        execute("git clone ${env.DEPLOY_TOOL_URL}")
+
+                        def commit_msgs = ""
+                        for (changeSet in currentBuild.changeSets) {
+                            for (item in changeSet.items) {
+                                commit_msgs = commit_msgs + item.msg + ';'
+                            }
+                        }
+
+                        initializeGitForDeployment()
+
+                        echo "Deploying source to github"
+                        // Deploy the source
+                        withCredentials([usernamePassword(credentialsId: 'pic-avr-solutions.github.com', usernameVariable: 'USER_NAME', passwordVariable:'USER_PASS' )]) {
+                            execute("cd ${env.DEPLOY_SCRIPT_DIR} && bash ${env.DEPLOY_SCRIPT_FILE} ${env.BITBUCKET_URL} ${env.GITHUB_URL} ${USER_NAME} ${USER_PASS} \
+                            '${env.DEPLOY_INCLUDES}' '--exclude ${env.DEPLOY_EXCLUDES}' '--commit ${env.BRANCH_NAME} \"${commit_msgs}\"'")
+                        }
+                    }
+                }
+            }
+        }
+        stage('GitHub-Release'){
+            when{
+                // Only deploy if tests passed
+                equals expected: 'SUCCESS', actual: currentBuild.currentResult;
+                // Only deploy valid semantic versioning tags
+                tag pattern: "${env.SEMVER_REGEX}", comparator: "REGEXP"
+            }
+            stages {
+                stage('GitHub-Tag') {
+                    steps {
+                        container('rsync') {
+                            script {
+                                execute("git clone ${env.DEPLOY_TOOL_URL}")
+
+                                initializeGitForDeployment()
+
+                                echo "Deploying ${env.TAG_NAME} to github"
+                                withCredentials([usernamePassword(credentialsId: 'pic-avr-solutions.github.com', usernameVariable: 'USER_NAME', passwordVariable:'USER_PASS' )]) {
+                                    execute("cd ${env.DEPLOY_SCRIPT_DIR} && bash ${env.DEPLOY_ARTIFACTS_SCRIPT_FILE} ${env.GITHUB_URL} ${USER_NAME} ${USER_PASS} \
+                                    ${env.TAG_NAME} ${env.TAG_NAME} ${env.TAG_NAME} '--exclude ${env.DEPLOY_EXCLUDES}' '../${env.DEPLOY_HEX_FILE}'")
+                                }
+                                office365ConnectorSend message:"Deployed release ${env.TAG_NAME} to Github", webhookUrl: env.TEAMS_WEBHOOK, color: "004DB8"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage('Portal-Deploy') {
+            when {
+                // Only deploy if tests passed
+                equals expected: 'SUCCESS', actual: currentBuild.currentResult;
+                not {
+                    changeRequest()
+                    }
+                // Only deploy valid semantic versioning tags
+                tag pattern: "${env.SEMVER_REGEX}", comparator: "REGEXP"
+            }
+            steps {
+                script {
+                    def metadata = readJSON file:".main-meta/main.json"
+                    def version = metadata.content.version
+                    def project = metadata.content.projectName
+
+                    if(version == env.TAG_NAME) {
+                        echo "Deploying tag ${env.TAG_NAME} to Discovery portal"
+                        def cmdArgs = "'{\"repoOwnerName\":\"$env.GITHUB_OWNER\",\"repoName\":\"$project\",\"tagName\":\"$version\"}'"
+                        cmdArgs = cmdArgs.replaceAll("\"","\\\\\"")
+
+                        execute("git clone https://bitbucket.microchip.com/scm/portal/bundles.git")
+                        execute("cd bundles && chmod 755 ./portal-client-cli-linux")
+                        execute("git clone https://bitbucket.microchip.com/scm/citd/tool-portal-client-launcher.git")
+                        execute("cd tool-portal-client-launcher && node portalLauncher.js -app=../bundles/portal-client-cli-linux -cmd=\"uploadGitHub ${cmdArgs}\"")
+                        office365ConnectorSend message:"Deployed tag ${env.TAG_NAME} to Discovery portal", webhookUrl: env.TEAMS_WEBHOOK, color: "004DB8"
+                    } else {
+                        echo "Tag name is not equal to metadata content version."
+                        execute("exit 1")
+                    }
+                }
+            }
+        }	
+	}
     post {
+        always {
+            archiveArtifacts artifacts: "xc8_output/**,gcc_output/**", allowEmptyArchive:true, fingerprint: true
+            archiveArtifacts artifacts: "tool-mplabx-c-build/output/**", allowEmptyArchive: true, fingerprint: true
+        }
+        success{
+            script {
+                if (!"${env.CHANGE_AUTHOR_EMAIL}".equalsIgnoreCase("null")) {
+                    mail    to: "${env.CHANGE_AUTHOR_EMAIL}, ${params.NOTIFICATION_EMAIL}",
+                            subject: "Successful Pipeline: ${currentBuild.fullDisplayName}",
+                            body: "Pipeline Link: ${env.BUILD_URL}"
+                } else {
+                    mail    to: "${params.NOTIFICATION_EMAIL}",
+                            subject: "Successful Pipeline: ${currentBuild.fullDisplayName}",
+                            body: "Pipeline Link: ${env.BUILD_URL}"
+                }
+            }
+        }
         failure {
-            office365ConnectorSend message:"Pipeline Failure", status:"FAILURE", webhookUrl: env.TEAMS_WEBHOOK, color: "FF0000"
+            script {
+				 if (!"${env.CHANGE_AUTHOR_EMAIL}".equalsIgnoreCase("null")) {
+					mail    to: "${env.CHANGE_AUTHOR_EMAIL}, ${params.NOTIFICATION_EMAIL}",
+							subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+							body: "Pipeline Link: ${env.BUILD_URL}"
+				 } else {
+					mail    to: "${params.NOTIFICATION_EMAIL}",
+							subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+							body: "Pipeline Link: ${env.BUILD_URL}"
+				 }
+            }
         }
-        fixed {
-            office365ConnectorSend message:"Pipeline Fixed", status:"FIXED", webhookUrl: env.TEAMS_WEBHOOK, color: "00FF00"
-        }
-        aborted {
-            office365ConnectorSend message:"Pipeline Aborted", status:"ABORTED", webhookUrl: env.TEAMS_WEBHOOK, color: "3300FF"
-        }
-        unstable {
-            office365ConnectorSend message:"Pipeline Unstable. Failing tests?", status:"UNSTABLE", webhookUrl: env.TEAMS_WEBHOOK, color: "FFAA00"
-        }
-    }
+	}
 }
 
 def execute(String cmd) {
@@ -105,11 +219,6 @@ def execute(String cmd) {
     } else {
         bat cmd
     }
-}
-
-def initializeGitForDeployment() {
-    execute("git config --global user.email 'microchip@microchip.com'")
-    execute("git config --global user.name 'Microchip Technology'")
 }
 
 def zipFirmwareArtifact(String sourcePath, String artifactsuffix) {

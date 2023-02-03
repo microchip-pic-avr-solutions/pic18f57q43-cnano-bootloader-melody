@@ -7,7 +7,7 @@
  * 
  * @brief This is the generated header file for the System Driver.
  *
- * @version Driver Version 2.0.2
+ * @version Driver Version 2.0.1
 */
 
 /*
@@ -40,6 +40,7 @@
 #include <xc.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <conio.h>
 #include "../system/config_bits.h"
 #include "../system/clock.h"
 #include "../system/pins.h"

@@ -7,7 +7,7 @@
  * 
  * @brief This is the generated header file for the Clock driver.
  *
- * @version Driver Version 2.0.3
+ * @version Driver Version 2.0.2
  *
 */
 

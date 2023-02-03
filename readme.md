@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This example uses the 8-bit Melody Bootloader library to show how to configure the bootloader on PIC18F57Q43 along with a simple LED blinking end application project. The bootloader will be programmed into the microcontroller using MPLAB X IDE and the end application will be programmed using UBHA ([Unified Bootloader Host Application](https://www.microchip.com/en-us/tools-resources/develop/libraries/microchip-bootloaders/8-bit))
+This example uses the 8-bit Melody Bootloader library to show how to configure the bootloader for the PIC18F57Q43 along with a simple LED blinking end application project. The bootloader will be programmed into the microcontroller using MPLAB X IDE and the end application will be programmed using UBHA ([Unified Bootloader Host Application](https://www.microchip.com/en-us/tools-resources/develop/libraries/microchip-bootloaders/8-bit))
 
 ## Hardware Tools
 
@@ -146,27 +146,17 @@ Checksum, CRC16, CRC32 and Offset (Reset Vector and Status Flag) verification sc
 
 ### Linker > Additional Options
  #### Note: More information on the linker settings can be found in the Hexmate User Guide
-Codeoffset = 3000h 
-Checksum = 3000-1FFFD@1FFFE,width=-2,algorithm=2
 
-| Value      | Description                                                                        |
-|----------- |------------------------------------------------------------------------------------|
-| 3000       | Bootloader offset value                                                            |
-| 1FFFD      | Program Memory Size                                                                |
-| Width      | Width of Checksum - This value is used because the checksum calculated is 2 bytes. It will occupy the last 2bytes of the Program Memory.For CRC32, checksum value is 4 bytes and CRC16 & Checksum value is 2 bytes |
-| 1FFFE      | Checksum value will be stored here for 2bytes                                      |
-| algorithm  | Checksum verification schemes algorithm value                                      |
-| polynomial | Hexadecimal value used when calculating CRC. For more information, refer the Melody 8-bit Bootloader_VerificationSchemas section in the Melody Bootloader User's Guide |
+ ![PIC18F57Q43 Linker Settings](Images/Application_Linker_Settings.png)
 
-Linker Additional Setting for the verification schemes:
-
-|Verification Scheme | Linker Additional Settings                                                 |
-|------------------- | -------------------------------------------------------------------------- |
-| CRC16              | 3000-1FFFD@1FFFE,width=-2,algorithm=5,offset=FFFF,polynomial=1021          |
-| CRC32              | 3000-1FFFB@1FFFC,width=-4,algorithm=-5,offset=FFFFFFFF,polynomial=04C11DB7 |
-| Checksum           | 3000-1FFFD@1FFFE,width=-2,algorithm=2                                      |
-
-![PIC18F57Q43 Linker Settings](Images/Application_Linker_Settings.png)
+|Verification Scheme | Linker Additional Settings                                                 | Description
+|------------------- | -------------------------------------------------------------------------- |------------------------------------------------------------ |
+| CRC16              | 3000-1FFFD@1FFFE,width=-2,algorithm=5,offset=FFFF,polynomial=1021          | 3000       -> Bootloader offset value                       |
+| CRC32              | 3000-1FFFB@1FFFC,width=-4,algorithm=-5,offset=FFFFFFFF,polynomial=04C11DB7 | 1FFFD      -> Program Memory Size                           |
+| Checksum           | 3000-1FFFD@1FFFE,width=-2,algorithm=2                                      | Width      -> Width of Checksum - This value is used because the checksum calculated is 2 bytes. It will occupy the last 2bytes of the Program Memory.For CRC32, checksum value is 4 bytes and CRC16 & Checksum value is 2 bytes          |
+|                    |                                                                            | 1FFFE      -> Checksum value will be stored here for 2bytes |
+|                    |                                                                            | algorithm  -> Checksum verification schemes algorithm value |
+|                    |                                                                            | polynomial -> Hexadecimal value used when calculating CRC. For more information, refer the Melody 8-bit Bootloader_VerificationSchemas section in the Melody Bootloader User's Guide |
 
 ## Application Hex file is programmed using the UBHA
 

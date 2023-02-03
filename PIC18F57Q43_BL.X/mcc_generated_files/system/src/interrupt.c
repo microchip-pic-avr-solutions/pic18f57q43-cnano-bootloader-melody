@@ -1,13 +1,13 @@
 /**
- * Interrupt Manager Generated Driver File.
+ * Interrupt Manager Generated Driver File
  *
  * @file interrupt.c
  * 
  * @ingroup interrupt 
  * 
- * @brief This file contains the API prototypes for the Interrupt Manager driver.
+ * @brief This file contains the driver code for Interrupt Manager.
  * 
- * @version Interrupt Manager Driver Version 2.0.4
+ * @version Interrupt Manager Driver Version 2.03
 */
 
 /*
@@ -33,7 +33,6 @@
 
 #include "../../system/interrupt.h"
 #include "../../system/system.h"
-#include "../pins.h"
 
 void (*INT0_InterruptHandler)(void);
 void (*INT1_InterruptHandler)(void);

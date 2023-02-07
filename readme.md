@@ -17,7 +17,7 @@ This example uses the 8-bit Melody Bootloader library to show how to configure t
 2. [MPLAB Code Configurator (Plugin) v5.1.17 or later](https://www.microchip.com/en-us/tools-resources/configure/mplab-code-configurator)
 3. [XC8 Compiler v2.40 or later](https://www.microchip.com/en-us/tools-resources/develop/mplab-xc-compilers/downloads-documentation#XC8)
 4. Melody Core v5.4.3 or later
-5. [Java Runtime Environment version 1.8.0_25 or older](https://www.oracle.com/java/technologies/javase/8u251-relnotes.html)
+5. [Java Runtime Environment version 1.8.0_251 or older](https://www.oracle.com/java/technologies/javase/8u251-relnotes.html)
 6. Unified Bootloader Host Application ([UBHA](https://www.microchip.com/en-us/tools-resources/develop/libraries/microchip-bootloaders/8-bit))
 
 ## Library Dependencies
@@ -93,10 +93,10 @@ The PIC18F57Q43 Curiosity Nano Development Board is used as the test platform. T
   13. Next step is to configure the project properties. This can be opened by selecting "File->Project Properties". Select "PIC18F57Q43 Curiosity Nano" under Connected Hardware Tool, DFP version under Packs and the XC8 version under compiler toolchain.   
   ![Project Properties](Images/Project_Properties.png)
 
-  14. We have completed the needed configurations for the Bootloader project. Clean and build the project by clicking the Clean and Build Main Project button on the toolbar.   
+  14. We have completed the needed configurations for the Bootloader project. Clean and build the project by clicking the Clean and Build Main Project on the toolbar.   
   ![Clean and Build PIC18F57Q43_BL.X Project](Images/Build%20Project.png)
 
-  15. Program the device by clicking "Make and Program Device Main Project" button on the toolbar. Once the bootloader is programmed into the device successfully, you should see the device LED ON.   
+  15. Program the device by clicking "Make and Program Device Main Project" on the toolbar. Once the bootloader is programmed into the device successfully, you should see the device LED ON.   
   ![Program PIC18F57Q43 Curiosity Nano](Images/Program_Microcontroller.png)
 
 
@@ -122,7 +122,7 @@ The end application really depends on what the customer wants the microcontrolle
   6. Press 'Generate' to generate the project code. Make sure the generation is completed successfully.      
   ![Generate Code](Images/App_Generate_Code.PNG)
 
-  7. For a blinking LED application, add the following code is added to main.c in Source Files under the project folder. The delay.h header file must also be included in the main file.   
+  7. For a blinking LED application, add the following code to main.c file in Source Files under the Project folder. The delay.h header file must also be included in the main file.   
   ![LED Blink Code](Images/led_blink_code.png)
   
   8. Certificate.c file reserves the last 4bytes of the Flash memory and writes them with 0xFFFFFFFF. This is later updated with the correct Checksum or CRC value calculated during the post build step.   
@@ -133,7 +133,7 @@ The end application really depends on what the customer wants the microcontrolle
 
   10. For the end application project, we also need to configure the linker setting for the verification scheme used. Please checkout the Compiler and Linker Settings section for the details.
 
-  11. We have completed the needed configurations for the end application project. Compile and build the project by clicking the Clean and Build Main Project on the toolbar.
+  11. We have completed the needed configurations for the end application project. Compile and build the project by clicking Clean and Build Main Project on the toolbar.
 
   12. The application HEX can be loaded on the microcontroller through Microchip's Unified Bootloader Host Application(UBHA).
 
@@ -149,14 +149,14 @@ Checksum, CRC16, CRC32 and Offset (Reset Vector and Status Flag) verification sc
 
  ![PIC18F57Q43 Linker Settings](Images/Application_Linker_Settings.png)
 
-|Verification Scheme | Linker Additional Settings                                                 | Description
+|Verification Scheme | Linker Additional Settings                                                 | Description (Checksum verification taken as example)
 |------------------- | -------------------------------------------------------------------------- |------------------------------------------------------------ |
 | CRC16              | 3000-1FFFD@1FFFE,width=-2,algorithm=5,offset=FFFF,polynomial=1021          | 3000       -> Bootloader offset value                       |
-| CRC32              | 3000-1FFFB@1FFFC,width=-4,algorithm=-5,offset=FFFFFFFF,polynomial=04C11DB7 | 1FFFD      -> Program Memory Size                           |
-| Checksum           | 3000-1FFFD@1FFFE,width=-2,algorithm=2                                      | width      -> Width of Checksum - This value is used because the checksum calculated is 2 bytes. It will occupy the last 2bytes of the Program Memory.For CRC32, checksum value is 4 bytes and CRC16 & Checksum value is 2 bytes          |
+| CRC32              | 3000-1FFFB@1FFFC,width=-4,algorithm=-5,offset=FFFFFFFF,polynomial=04C11DB7 | 1FFFD      -> Program Memory Size - 2 -> Application space ends here |
+| Checksum           | 3000-1FFFD@1FFFE,width=-2,algorithm=2                                      | width      -> Width of Checksum - For CRC32, checksum value is 4 bytes and CRC16 & Checksum value is 2 bytes |
 |                    |                                                                            | 1FFFE      -> Checksum value will be stored here for 2bytes |
 |                    |                                                                            | algorithm  -> Checksum verification schemes algorithm value |
-|                    |                                                                            | polynomial -> Hexadecimal value used when calculating CRC. For more information, refer the Melody 8-bit Bootloader_VerificationSchemas section in the Melody Bootloader User's Guide |
+|                    |                                                                            | polynomial -> Hexadecimal value used when calculating CRC (not applicable for Checksum verification scheme). For more information, refer the Melody 8-bit Bootloader_Verification Schemas section in the Melody Bootloader User's Guide |
 
 ## Application Hex file is programmed using the UBHA
 
@@ -187,5 +187,5 @@ The application HEX file is loaded in the controller using Microchip's Unified B
    7. Set the program memory size depending on the target device. For PIC18F57Q43, the program memory size is 0x20000. Enter the offset programmed previously in the bootloader project, i.e. 0x3000. The size of every location depends on the target device. Some devices have word-addressable Flash and others have it byte-addressable. For PIC16 devices, convert the word addresses into bytes before inputing them into UBHA. (Example: 0x800 Words x 0x2 => 0x1000 Bytes).    
    ![UBHA Bootloader Offset](Images/UBHA_Bootloader_Offset.PNG)
    
-   8. Click on the Program Device button. Once the device is programmed, the bootloader will disconnect from the COM port and the device LED should be blinking now.   
+   8. Click on the Program Device. Once the device is programmed, the bootloader will disconnect from the COM port and the device LED should be blinking now.   
   ![Successful Programming](Images/UBHA%20completed.png)   

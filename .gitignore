@@ -1,0 +1,10 @@
+build
+dist
+private
+*.mk
+*.properties
+*.bash
+*.bak
+.generated_files
+debug
+

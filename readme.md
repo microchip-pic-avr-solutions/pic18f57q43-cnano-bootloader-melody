@@ -156,11 +156,11 @@ Checksum, CRC16, CRC32 and Offset (Reset Vector and Status Flag) verification sc
 | Checksum           | 3000-1FFFD@1FFFE,width=-2,algorithm=2                                      | width      -> Width of Checksum - For CRC32, checksum value is 4 bytes and CRC16 & Checksum value is 2 bytes |
 |                    |                                                                            | 1FFFE      -> Checksum value will be stored here for 2bytes |
 |                    |                                                                            | algorithm  -> Checksum verification schemes algorithm value |
-|                    |                                                                            | polynomial -> Hexadecimal value used when calculating CRC (not applicable for Checksum verification scheme). For more information, refer the Melody 8-bit Bootloader_Verification Schemas section in the Melody Bootloader User's Guide |
+|                    |                                                                            | polynomial -> Hexadecimal value used when calculating CRC (not applicable for Checksum verification scheme). For more information, refer the Melody 8-bit Bootloader_Verification Schemes section in the Melody Bootloader User's Guide |
 
 ## Application Hex file is programmed using the UBHA
 
-The Unified Bootloader Host Application is a Java utility that was created to simplify the development and testing process for anyone configuring our basic bootloader. You will more than likely be writing your own host to interface with your specific bootloader firmware but UBHA will help you get started with the basic bootloader firmware present in the Melody 8-bit Bootloader Library.
+The Unified Bootloader Host Application is a Java utility that was created to simplify the development and testing process for anyone configuring a basic bootloader. You will more than likely be writing your own host to interface with your specific bootloader firmware but UBHA will help you get started with the basic bootloader firmware present in the Melody 8-bit Bootloader Library.
 
 The application HEX file is loaded in the controller using Microchip's Unified Bootloader Host Application. Before programming the controller with the Application HEX file, make sure the controller is programmed with the bootloader.   
 

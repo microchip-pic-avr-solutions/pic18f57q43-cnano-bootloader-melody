@@ -65,7 +65,7 @@ The PIC18F57Q43 Curiosity Nano Development Board is used as the test platform. T
   7.  Now configure the Bootloader8-bit module: select the necessary options for the project and the Memory Verification scheme.
   Also configure the offset for the bootloader firmware. The remaining space in the flash will be filled by the end application code. 
   
-  Note: For a PIC18F57Q43 device, a minimum offset of 3000h is required.   
+  Note: For a PIC18F57Q43 device, a minimum bootloader offset of 3000h is required.   
     ![Bootloader Settings](Images/Bootloader_Settings.PNG)
 
   8. Flash memory is divided into two areas by using the offset value. One is the bootloader section and the other is the end application section.
@@ -124,10 +124,10 @@ The end application really depends on what the customer wants the microcontrolle
   6. Press **Generate** to generate the project code. Make sure it is generated successfully.      
   ![Generate Code](Images/App_Generate_Code.PNG)
 
-  7. For a blinking LED application, add the following code to *main.c* file in Source Files under the Project folder. The *delay.h* header file must also be included in the main file.   
+  7. For a blinking LED application, add the following code to `main.c` file in Source Files under the Project folder. The `delay.h` header file must also be included in the main file.   
   ![LED Blink Code](Images/led_blink_code.png)
   
-  8. *Certificate.c* file reserves the last 4 bytes of the Flash memory and writes them with 0xFFFFFFFF. This is later updated with the correct Checksum or CRC value calculated during the post build step.   
+  8. `Certificate.c` file reserves the last 4 bytes of the Flash memory and writes them with 0xFFFFFFFF. This is later updated with the correct Checksum or CRC value calculated during the post build step.   
   ![Certificate.c File](Images/Certificate_File.PNG)
   
   9. Next step is to Configure the project properties. This can be opened by selecting *File>Project Properties*. Select "PIC18F57Q43 Curiosity Nano" under Connected Hardware Tool, DFP version under Packs and the XC8 version under Compiler Toolchain.   
@@ -183,7 +183,7 @@ The application HEX file is loaded in the controller using Microchip's Unified B
    5. Opening the console to get all the printed messages is ideal for debugging or communication failures. Console can be found under the **Tools** tab.   
   ![Console for logs](Images/UBHA%20Console.png)
 
-   6. Load the end application Hex file by selecting *File>Open/Load File*. Hex file will be present at *Application Project Folder\dist\verification_scheme\production*.   
+   6. Load the end application Hex file by selecting *File>Open/Load File*. Hex file will be present at `Application Project Folder\dist\verification_scheme\production`.   
   ![Selected HEX file](Images/Selected%20Hex%20File.png) 
 
    7. Set the program memory size depending on the target device. For PIC18F57Q43, the program memory size is 0x20000. Enter the offset programmed previously in the bootloader project, that is 0x3000. The size of every location depends on the target device. Some devices have word-addressable Flash and others have it byte-addressable. For PIC16 devices, convert the word addresses into bytes before inputing them into UBHA. (Example: 0x800 Words x 0x2 => 0x1000 Bytes).    

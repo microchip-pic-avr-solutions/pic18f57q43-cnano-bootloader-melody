@@ -38,7 +38,7 @@ This example uses the 8-bit Melody Bootloader library to show how to configure t
 
 ## Setup
 
-The PIC18F57Q43 Curiosity Nano Development Board is used as the test platform. To setup the board, connect the device to the PC using the USB cable before proceeding with the project.   
+The PIC18F57Q43 Curiosity Nano Development Board is used as the test platform. To set up the board, connect the device to the PC using the USB cable before proceeding with the project.   
 ![PIC18F57Q43 Curiosity Nano Develpment Board](Images/PIC18F57Q43.png)
 
 
@@ -115,7 +115,7 @@ The end application really depends on what the customer wants the microcontrolle
   3. Open CLKCTRL from System module in the **Project Resources** tab. Make sure the Clock bits are configured to the settings observed in the bootloader. This will help during testing to prevent the configuration bits from causing a Checksum mismatch with UBHA.   
   ![Clock Settings](Images/Application_Clock_Setting.png)
 
-  4. On-board LED is configured by setting RF3 as output pin.   
+  4. The LED on the board is configured by setting RF3 as output pin.   
   ![Pin Configuration for PIC18F57Q43](Images/Application_Pin_Setting.png)
 
   5. Delay timer is used to add a delay between toggling the LED.  
@@ -133,7 +133,7 @@ The end application really depends on what the customer wants the microcontrolle
   9. Next step is to Configure the project properties. This can be opened by selecting *File>Project Properties*. Select "PIC18F57Q43 Curiosity Nano" under Connected Hardware Tool, DFP version under Packs and the XC8 version under Compiler Toolchain.   
     ![Project Properties](Images/Application_Project_Properties.png)
 
-  10. For the end application project, we also need to configure the linker setting for the verification scheme used. Please checkout the Compiler and Linker Settings section for the details.
+  10. For the end application project, we also need to configure the linker setting for the verification scheme used. Refer "Compiler and Linker Settings" section for details.
 
   11. Now that the needed configurations for the Bootloader project are done, compile and build the project by clicking the **Clean and Build Main Project** icon on the toolbar.
 
@@ -171,7 +171,7 @@ The application HEX file is loaded in the controller using Microchip's Unified B
    1. Download and Launch the UBHA.   
    ![GUI of UBHA](Images/UBHA.png)
    
-   2. COM port for PIC18F57Q43 Curiosity Nano Board can be found out within the Device Manager.   
+   2. COM port for PIC18F57Q43 Curiosity Nano board can be found out within the Device Manager.   
    ![Curiosity Nano COM Port](Images/COM_Port_Number.png)
 
    3. Select PIC18  device architecture.   
@@ -189,5 +189,5 @@ The application HEX file is loaded in the controller using Microchip's Unified B
    7. Set the program memory size depending on the target device. For PIC18F57Q43, the program memory size is 0x20000. Enter the offset programmed previously in the bootloader project, that is 0x3000. The size of every location depends on the target device. Some devices have word-addressable Flash and others have it byte-addressable. For PIC16 devices, convert the word addresses into bytes before inputing them into UBHA. (Example: 0x800 Words x 0x2 => 0x1000 Bytes).    
    ![UBHA Bootloader Offset](Images/UBHA_Bootloader_Offset.PNG)
    
-   8. Click on the Program Device. Once the device is programmed, the bootloader will disconnect from the COM port and the device LED will blink now.   
+   8. Click Program Device. Once the device is programmed, the bootloader will disconnect from the COM port and the device LED will blink now.   
   ![Successful Programming](Images/UBHA%20completed.png)   

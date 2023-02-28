@@ -7,7 +7,7 @@
         "version": "1.0.0",
         "displayName": "pic18f57q43-cnano-bootloader-melody",
         "projectName": "pic18f57q43-cnano-bootloader-melody",
-        "shortDescription": "Bootloader solution for PIC18F57Q43 using MCC Melody 8-Bit Bootloader Generator Library see https://www.npmjs.com/package/@mchp-mcc/bootloader-8bit?activeTab=readme",
+        "shortDescription": "Bootloader solution for PIC18F57Q43 using MCC Melody 8-Bit Bootloader Generator Library",
         "ide": {
             "name": "MPLAB X",
             "semverRange": ">=6.0.0"

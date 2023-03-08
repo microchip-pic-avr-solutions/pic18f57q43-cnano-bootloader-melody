@@ -1,5 +1,3 @@
-// Jenkinsfilek8s v1.2.0
-
 pipeline {
     agent {
 		kubernetes {
@@ -7,41 +5,25 @@ pipeline {
 			yamlFile '.citd/cloudprovider.yml'
 		}
 	}
-
-    environment {
-        GITHUB_OWNER = 'microchip-pic-avr-solutions'
-        GITHUB_URL ='https://github.com/microchip-pic-avr-solutions/pic18f57q43-cnano-bootloader-melody.git'
-        BITBUCKET_URL = 'https://bitbucket.microchip.com/scm/MFML/pic18f57q43-cnano-bootloader-melody.git'
-        DEPLOY_TOOL_URL = 'https://bitbucket.microchip.com/scm/citd/tool-github-deploy.git'
-        DEPLOY_SCRIPT_DIR = 'tool-github-deploy'
-        DEPLOY_SCRIPT_FILE = 'deploy-selective-source.sh'
-        DEPLOY_ARTIFACTS_SCRIPT_FILE = 'deploy-artifacts.sh'
-        DEPLOY_INCLUDES = '../PIC18F57Q43_BL.X ../PIC18F57Q43_App.X ../readme.md ../disclaimer.tdd ../Images ../.main-meta'
-        DEPLOY_EXCLUDES = 'build dist .generated_files'
-        DEPLOY_HEX_FILE = 'PIC18F57Q43_BL.X/dist/XC8/production/PIC18F57Q43_BL.X.production.hex'
-        ARTIFACTORY_SERVER = 'https://artifacts.microchip.com:7999/artifactory'
-        ARTIFACTORY_MODULE = 'pic18f57q43-cnano-bootloader-melody'
-        BUILD_FOLDER = 'build'
-        TEST_REPORT_PATH = 'build/artifacts/test/*.xml'
-        // When using branch name as part of IVY revision there should not be any forward slashes or dots in the branch name as it will confuse the ivy version parser
-        MODIFIED_BRANCH_NAME = "${BRANCH_NAME}".replace(".", "_").replace("/", "_")
-        IVY_REVISION = "${MODIFIED_BRANCH_NAME}.${BUILD_NUMBER}"
-        TEAMS_WEBHOOK = 'https://microchiptechnology.webhook.office.com/webhookb2/80151a3e-5353-42ab-891b-a7d893a2905b@3f4057f3-b418-4d4e-ba84-d55b4e897d88/IncomingWebhook/693f2426000d42f18354ef88c5fd9393/15b788d6-b5bb-4386-830b-9ef7f573e5ed'
-        SEMVER_REGEX = '^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)+$'
-    }
-
     parameters {
         string( name: 'NOTIFICATION_EMAIL',
                 defaultValue: 'LibraryDevTeam_MCU8@microchip.com',
                 description: "Email to send build failure and fixed notifications.")
     }
+	
+	environment {
+		GITHUB_OWNER = 'microchip-pic-avr-solutions'	
+		GITHUB_URL ='https://github.com/microchip-pic-avr-solutions/pic18f57q43-cnano-bootloader-melody.git'
+		BITBUCKET_URL = 'https://bitbucket.microchip.com/scm/MFML/pic18f57q43-cnano-bootloader-melody.git'
+		SEMVER_REGEX = '^(0|[1-9]\\d*)+\\.(0|[1-9]\\d*)+\\.(0|[1-9]\\d*)+$'
+		ARTIFACTORY_SERVER = 'https://artifacts.microchip.com:7999/artifactory'
+	}	
+	options {
+		timestamps()
+		timeout(time: 30, unit: 'MINUTES')
+	}
 
-    options {
-        timestamps()
-        timeout(time: 40, unit: 'MINUTES')
-    }
-
-    stages {
+	stages {
 		stage('Checkout') {
 			steps {
 				checkout scm
@@ -78,74 +60,38 @@ pipeline {
 					execute("git clone https://bitbucket.microchip.com/scm/citd/tool-mplabx-c-build.git")
 					execute("cd tool-mplabx-c-build && node buildLauncher.js sp=../ rp=./output genMK=true")
 					// Store build artifacts for later publishing to Artifactory
-					zipFirmwareArtifact("PIC18F57Q43_BL.X/dist/XC8/production", "XC8")
-					stash includes: "${BUILD_FOLDER}/${env.ARTIFACTORY_MODULE}-XC8.zip", name: 'artifacts-xc8'
 				}
 			}	
 		}
-        stage('GitHub-Deploy') {
+        stage('github-deploy') {
             when {
-                // Only deploy if tests passed
-                equals expected: 'SUCCESS', actual: currentBuild.currentResult;
-                not {
-                    changeRequest()
-                }
-                // Only deploy pushes to master
-                branch 'master'
+                tag ''
             }
-            steps {
-                container('rsync') {
-                    script {
-                        execute("git clone ${env.DEPLOY_TOOL_URL}")
-
-                        def commit_msgs = ""
-                        for (changeSet in currentBuild.changeSets) {
-                            for (item in changeSet.items) {
-                                commit_msgs = commit_msgs + item.msg + ';'
-                            }
-                        }
-
-                        initializeGitForDeployment()
-
-                        echo "Deploying source to github"
-                        // Deploy the source
-                        withCredentials([usernamePassword(credentialsId: 'pic-avr-solutions.github.com', usernameVariable: 'USER_NAME', passwordVariable:'USER_PASS' )]) {
-                            execute("cd ${env.DEPLOY_SCRIPT_DIR} && bash ${env.DEPLOY_SCRIPT_FILE} ${env.BITBUCKET_URL} ${env.GITHUB_URL} ${USER_NAME} ${USER_PASS} \
-                            '${env.DEPLOY_INCLUDES}' '--exclude ${env.DEPLOY_EXCLUDES}' '--commit ${env.BRANCH_NAME} \"${commit_msgs}\"'")
+            steps{
+                script{
+                    //def topicsAsString = getTopics()
+                    def githubObj = getGiHubInfo()
+                    def metadata = readJSON file:".main-meta/main.json"					
+                    def version = metadata.content.version
+					// this if condition allows release only if tag and metadata version match
+                    if(version == env.TAG_NAME){
+                        download("tool-github-deploy","1.4.0")		
+                        execute("chmod +x ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py")  
+                        withCredentials([usernamePassword(credentialsId: 'your github token here', usernameVariable: 'USER_NAME', passwordVariable:'USER_PASS' )]) {					
+                            execute("python ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py -deploy=true -gpat=${USER_PASS} -dgid=${USER_NAME} -dburl=${env.BITBUCKET_URL} -dgurl=${env.GITHUB_URL} -dtag=${env.TAG_NAME} -dmfd=true -digmc=true -def='files to exclude during github deployment'")						
+                            execute("python ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py -rpo=true -gpat=${USER_PASS}  -rpn=${githubObj.repoName} -rpp=false -rporg=microchip-pic-avr-solutions")	
+                            download("tool-zip-hex-file","1.2.0")
+                            execute("pip install xmltodict")
+                            execute("cp ./tool-zip-hex-file/zip-hex.py ./")
+                            execute("python zip-hex.py --tagName ${env.TAG_NAME}")
+                            execute("python ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py -rlo=true -gpat=${USER_PASS}  -rpn=${githubObj.repoName} -rltv=${env.TAG_NAME} -rltt=${env.TAG_NAME} -rlua=./hex-files.zip")	
                         }
                     }
                 }
-            }
-        }
-        stage('GitHub-Release'){
-            when{
-                // Only deploy if tests passed
-                equals expected: 'SUCCESS', actual: currentBuild.currentResult;
-                // Only deploy valid semantic versioning tags
-                tag pattern: "${env.SEMVER_REGEX}", comparator: "REGEXP"
-            }
-            stages {
-                stage('GitHub-Tag') {
-                    steps {
-                        container('rsync') {
-                            script {
-                                execute("git clone ${env.DEPLOY_TOOL_URL}")
-
-                                initializeGitForDeployment()
-
-                                echo "Deploying ${env.TAG_NAME} to github"
-                                withCredentials([usernamePassword(credentialsId: 'pic-avr-solutions.github.com', usernameVariable: 'USER_NAME', passwordVariable:'USER_PASS' )]) {
-                                    execute("cd ${env.DEPLOY_SCRIPT_DIR} && bash ${env.DEPLOY_ARTIFACTS_SCRIPT_FILE} ${env.GITHUB_URL} ${USER_NAME} ${USER_PASS} \
-                                    ${env.TAG_NAME} ${env.TAG_NAME} ${env.TAG_NAME} '--exclude ${env.DEPLOY_EXCLUDES}' '../${env.DEPLOY_HEX_FILE}'")
-                                }
-                                office365ConnectorSend message:"Deployed release ${env.TAG_NAME} to Github", webhookUrl: env.TEAMS_WEBHOOK, color: "004DB8"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        stage('Portal-Deploy') {
+            }			
+		}
+		
+		stage('Portal-Deploy') {
             when {
                 // Only deploy if tests passed
                 equals expected: 'SUCCESS', actual: currentBuild.currentResult;
@@ -177,56 +123,97 @@ pipeline {
                     }
                 }
             }
-        }	
-	}
-    post {
-        always {
-            archiveArtifacts artifacts: "xc8_output/**,gcc_output/**", allowEmptyArchive:true, fingerprint: true
-            archiveArtifacts artifacts: "tool-mplabx-c-build/output/**", allowEmptyArchive: true, fingerprint: true
-        }
-        success{
-            script {
-                if (!"${env.CHANGE_AUTHOR_EMAIL}".equalsIgnoreCase("null")) {
-                    mail    to: "${env.CHANGE_AUTHOR_EMAIL}, ${params.NOTIFICATION_EMAIL}",
-                            subject: "Successful Pipeline: ${currentBuild.fullDisplayName}",
-                            body: "Pipeline Link: ${env.BUILD_URL}"
-                } else {
-                    mail    to: "${params.NOTIFICATION_EMAIL}",
-                            subject: "Successful Pipeline: ${currentBuild.fullDisplayName}",
-                            body: "Pipeline Link: ${env.BUILD_URL}"
-                }
-            }
-        }
-        failure {
-            script {
-				 if (!"${env.CHANGE_AUTHOR_EMAIL}".equalsIgnoreCase("null")) {
-					mail    to: "${env.CHANGE_AUTHOR_EMAIL}, ${params.NOTIFICATION_EMAIL}",
-							subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
-							body: "Pipeline Link: ${env.BUILD_URL}"
-				 } else {
-					mail    to: "${params.NOTIFICATION_EMAIL}",
-							subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
-							body: "Pipeline Link: ${env.BUILD_URL}"
-				 }
-            }
         }
 	}
 }
-
 def execute(String cmd) {
-    if(isUnix()) {
-        sh cmd
-    } else {
-        bat cmd
-    }
+	if(isUnix()) {
+		sh cmd
+	} else {
+		bat cmd
+	}											  				
 }
 
-def zipFirmwareArtifact(String sourcePath, String artifactsuffix) {
-    def files = findFiles glob: "${sourcePath}/**"
-    echo "Zipping files in folder ${sourcePath}"
-    if( files.length > 0 ) {
-        def ZipFile = "${BUILD_FOLDER}/${env.ARTIFACTORY_MODULE}-${artifactsuffix}.zip"
-        echo "Zipping to ${ZipFile}"
-        zip archive: true, glob: "**", zipFile: "${ZipFile}", dir: "${sourcePath}"
+def download(String toolName,String toolVersion) {
+	def repo = "ivy/citd"
+	def url = "${env.ARTIFACTORY_SERVER}/${repo}/${toolName}/${toolVersion}/${toolName}-${toolVersion}.zip"
+	def response =sh(script:"curl ${url} -o ${toolName}.zip",returnStdout: true).trim()
+	unzip dir:"${toolName}", quiet: true, zipFile: "${toolName}.zip"	
+	execute("rm -rf ${toolName}.zip")
+}
+
+def getGiHubInfo() {
+	def githubObj = [
+		'ownerName':'',
+		'repoName':''
+		]
+	String[] splitURLString = "${env.GITHUB_URL}".split("/")
+	githubObj.repoName = splitURLString[splitURLString.size()-1]
+	githubObj.repoName = githubObj.repoName.replace(".git","")
+	githubObj.ownerName = splitURLString[splitURLString.size()-2]
+	return githubObj
+}
+
+def getTopics () {
+	def metadata = readJSON file:".main-meta/main.json"	
+	List keywords = metadata.content.keywords
+	topicsAsString = keywords[0].toString()
+	for (int i = 0; i < keywords.size()-1; i++) {
+        topicsAsString = topicsAsString + ','+keywords[i+1].toString()
     }
+    topicsAsString = topicsAsString.replace("\n", "").replace(" ", "-").replace("\t", "").replace("\r", "")
+	return topicsAsString
+}
+def deployReport(String src) {
+	def source = src	
+	def files = findFiles glob: "${source}" 
+	if( files.length > 0 ) {
+		//def repository = 'mcu8-bin/8bit-Example'	
+		def repository = 'citd/report'
+		def slug = GIT_URL.tokenize('/')[4]
+		slug = slug.substring(0, slug.lastIndexOf('.')) //Remove .git
+		def sourceZipFile = "${slug}-${env.BRANCH_NAME}.${env.BUILD_NUMBER}.zip"
+		def targetZipFile = "${env.ARTIFACTORY_SERVER}/${repository}/${slug}/${env.BRANCH_NAME}/${slug}-${env.BRANCH_NAME}.${env.BUILD_NUMBER}.zip"
+		zip archive: false, glob: "${source}",zipFile: "${sourceZipFile}"
+		execute("curl -T ${sourceZipFile} ${targetZipFile}")	
+		execute("rm -rf ${sourceZipFile}")
+		sendReportEmail(targetZipFile)
+	}
+}
+
+def createEmailList(){
+    execute("python3 -m pip install jira")
+	//def tool_version = readProperties  file: './mpae-buildpipeline-groovy-scripts/tool.properties'
+	download("tool-get-email-address","1.2.1")
+	withCredentials([usernamePassword(credentialsId: 'Jira-acess-Credentials', usernameVariable: 'JiraID', passwordVariable:'JiraPassword' )]) {					
+		execute("cd tool-get-email-address && python3 emailAddressFromJira.py -id ${JiraID} -tkn ${JiraPassword}")
+	}
+	env.JIRAEMAIL = readFile('email.txt')
+	if(!"${env.CHANGE_AUTHOR_EMAIL}".equalsIgnoreCase("null")) {
+		env.EMAILLIST = env.CHANGE_AUTHOR_EMAIL
+	}else if (env.JIRAEMAIL?.trim()) {
+        env.EMAILLIST = env.JIRAEMAIL
+    }else{
+		env.EMAILLIST = params.NOTIFICATION_EMAIL
+	}
+	execute("echo ${env.EMAILLIST}")
+
+}
+
+def sendReportEmail(String reportFile) {
+    mail to: "${env.EMAILLIST}",
+    subject: "Report: ${currentBuild.fullDisplayName}",
+    body: "Report: ${reportFile}"
+}
+
+def sendSuccessfulGithubDeploymentEmail() {
+    emailext( to: "${env.EMAILLIST}",
+    subject: "Successful Github Deployment: ${currentBuild.fullDisplayName}",
+    body: "The changes have been successfully deployed to GitHub. ${env.GITHUB_URL}")
+}
+
+def sendSuccessfulPortalDeploymentEmail() {
+    emailext( to: "${env.EMAILLIST}",
+    subject: "Successful Portal Deployment: ${currentBuild.fullDisplayName}",
+    body: "The changes have been successfully deployed to Discover Portal.")
 }

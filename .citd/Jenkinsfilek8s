@@ -77,7 +77,7 @@ pipeline {
                     if(version == env.TAG_NAME){
                         download("tool-github-deploy","1.4.0")		
                         execute("chmod +x ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py")  
-                        withCredentials([usernamePassword(credentialsId: 'your github token here', usernameVariable: 'USER_NAME', passwordVariable:'USER_PASS' )]) {					
+                        withCredentials([usernamePassword(credentialsId: 'pic-avr-solutions.github.com', usernameVariable: 'USER_NAME', passwordVariable:'PASS' )]) {					
                             execute("python ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py -deploy=true -gpat=${USER_PASS} -dgid=${USER_NAME} -dburl=${env.BITBUCKET_URL} -dgurl=${env.GITHUB_URL} -dtag=${env.TAG_NAME} -dmfd=true -digmc=true -def='.citd, .main-meta'")						
                             execute("python ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py -rpo=true -gpat=${USER_PASS}  -rpn=${githubObj.repoName} -rpp=false -rporg=microchip-pic-avr-solutions")	
                             download("tool-zip-hex-file","1.2.0")

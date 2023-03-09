@@ -78,13 +78,13 @@ pipeline {
                         download("tool-github-deploy","1.4.0")		
                         execute("chmod +x ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py")  
                         withCredentials([usernamePassword(credentialsId: 'pic-avr-solutions.github.com', usernameVariable: 'USER_NAME', passwordVariable:'PASS' )]) {					
-                            execute("python ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py -deploy=true -gpat=${USER_PASS} -dgid=${USER_NAME} -dburl=${env.BITBUCKET_URL} -dgurl=${env.GITHUB_URL} -dtag=${env.TAG_NAME} -dmfd=true -digmc=true -def='.citd, .main-meta'")						
-                            execute("python ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py -rpo=true -gpat=${USER_PASS}  -rpn=${githubObj.repoName} -rpp=false -rporg=microchip-pic-avr-solutions")	
+                            execute("python ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py -deploy=true -gpat=${PASS} -dgid=${USER_NAME} -dburl=${env.BITBUCKET_URL} -dgurl=${env.GITHUB_URL} -dtag=${env.TAG_NAME} -dmfd=true -digmc=true -def='.citd, .main-meta'")						
+                            execute("python ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py -rpo=true -gpat=${PASS}  -rpn=${githubObj.repoName} -rpp=false -rporg=microchip-pic-avr-solutions")	
                             download("tool-zip-hex-file","1.2.0")
                             execute("pip install xmltodict")
                             execute("cp ./tool-zip-hex-file/zip-hex.py ./")
                             execute("python zip-hex.py --tagName ${env.TAG_NAME}")
-                            execute("python ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py -rlo=true -gpat=${USER_PASS}  -rpn=${githubObj.repoName} -rltv=${env.TAG_NAME} -rltt=${env.TAG_NAME} -rlua=./hex-files.zip")	
+                            execute("python ./tool-github-deploy/tool-github-deploy/tool-github-deploy.py -rlo=true -gpat=${PASS}  -rpn=${githubObj.repoName} -rltv=${env.TAG_NAME} -rltt=${env.TAG_NAME} -rlua=./hex-files.zip")	
                         }
                     }
                 }
